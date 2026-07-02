@@ -11,13 +11,30 @@ const client = new Anthropic({ apiKey: config.anthropicApiKey });
 // here (not paginated) in v1 — see the MVP cut line in the project plan.
 const CHAR_BUDGET = 10_000;
 
-const VocabItemSchema = z.object({
+const BaseVocabItemSchema = z.object({
   targetPhrase: z.string().describe("A word or short phrase in the target language worth teaching"),
   sourcePhrase: z.string().describe("A natural, idiomatic translation into the learner's native language"),
   notes: z.string().optional().describe("Brief note, e.g. 'high-frequency greeting' or 'irregular verb form'"),
-  kanaReading: z.string().optional().describe("For Japanese only: the full hiragana reading of targetPhrase (e.g. if targetPhrase is '食べる', kanaReading is 'たべる'). Omit for non-Japanese languages."),
 });
-const ExtractionResultSchema = z.object({ items: z.array(VocabItemSchema) });
+
+// For Japanese, kanaReading is REQUIRED (not optional) so that the structured
+// output always forces Claude to supply it. Without it the evaluator cannot
+// map kanji → hiragana and hiragana answers to kanji words are rejected.
+const JapaneseVocabItemSchema = BaseVocabItemSchema.extend({
+  kanaReading: z.string().describe(
+    "REQUIRED: the complete hiragana reading of targetPhrase. Always provide this, even when targetPhrase is already kana. " +
+    "Convert katakana to hiragana too. Examples: '食べる'→'たべる', '今日'→'きょう', 'アイスクリーム'→'あいすくりいむ', 'コーヒー'→'こおひい'"
+  ),
+});
+
+const VocabItemSchema = BaseVocabItemSchema.extend({
+  kanaReading: z.string().optional(),
+});
+
+function makeExtractionSchema(isJapanese: boolean) {
+  const itemSchema = isJapanese ? JapaneseVocabItemSchema : VocabItemSchema;
+  return z.object({ items: z.array(itemSchema) });
+}
 
 function languageDisplayName(bcp47: string): string {
   try {
@@ -36,7 +53,7 @@ function buildPrompt(opts: {
 }): string {
   const isJapanese = opts.targetLanguageCode.startsWith("ja");
   const kanaInstruction = isJapanese
-    ? "\n- For each Japanese item, also provide kanaReading: the complete hiragana reading of the targetPhrase (e.g. targetPhrase '食べる' → kanaReading 'たべる', targetPhrase '今日' → kanaReading 'きょう'). This allows learners to answer in hiragana, katakana, or kanji."
+    ? "\n- For EVERY Japanese item you MUST provide kanaReading: the complete hiragana reading (convert kanji AND katakana to hiragana). Examples: '食べる'→'たべる', '今日'→'きょう', 'アイスクリーム'→'あいすくりいむ', 'コーヒー'→'こおひい'. Omitting kanaReading will break the app."
     : "";
 
   return `You are a language-teaching content designer following the Pimsleur method.
@@ -66,10 +83,13 @@ export async function extractVocabulary(opts: {
   const truncated = totalCharCount > CHAR_BUDGET;
   const rawText = truncated ? opts.rawText.slice(0, CHAR_BUDGET) : opts.rawText;
 
+  const isJapanese = opts.targetLanguage.startsWith("ja");
+  const extractionSchema = makeExtractionSchema(isJapanese);
+
   const response = await client.messages.parse({
     model: config.claudeModel,
     max_tokens: 4096,
-    output_config: { format: zodOutputFormat(ExtractionResultSchema) },
+    output_config: { format: zodOutputFormat(extractionSchema) },
     messages: [
       {
         role: "user",
