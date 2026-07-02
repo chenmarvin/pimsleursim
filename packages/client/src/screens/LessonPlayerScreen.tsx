@@ -43,6 +43,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("playing");
   const [typedInput, setTypedInput] = useState("");
+  const [practiceInput, setPracticeInput] = useState("");
   const [feedback, setFeedback] = useState<{ correct: boolean; score: number } | null>(null);
   const masteryRef = useRef<MasteryMap>(initialMasteryMap);
   const statsRef = useRef<SessionStats>({ introduced: 0, reviewed: 0, correct: 0 });
@@ -67,6 +68,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
       setPhase("playing");
       setFeedback(null);
       setTypedInput("");
+      setPracticeInput("");
       try {
         if (currentStep.type === "introduce") {
           await speak(currentStep.targetPhrase, targetLanguage);
@@ -194,6 +196,19 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
               <span> ({currentStep.kanaReading})</span>
             )}
           </p>
+          <div>
+            <label>
+              Practice writing it:{" "}
+              <input
+                type="text"
+                value={practiceInput}
+                onChange={(e) => setPracticeInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter") handleContinue(); }}
+                placeholder={currentStep.kanaReading ?? currentStep.targetPhrase}
+                autoFocus
+              />
+            </label>
+          </div>
           <button onClick={handleContinue}>Continue</button>
         </div>
       )}
