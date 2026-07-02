@@ -1,0 +1,17 @@
+{
+  "name": "pimsleursim",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=@pimsleursim/server & npm run dev --workspace=@pimsleursim/client",
+    "build": "npm run build --workspace=@pimsleursim/client",
+    "start": "npm run start --workspace=@pimsleursim/server",
+    "typecheck": "npm run typecheck --workspace=@pimsleursim/shared && npm run typecheck --workspace=@pimsleursim/server && npm run typecheck --workspace=@pimsleursim/client"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
