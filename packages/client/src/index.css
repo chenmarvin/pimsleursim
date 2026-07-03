@@ -1,0 +1,11 @@
+/* Form controls don't inherit font-size from ancestors by default in
+   browsers, unlike regular text — without this, the app's font-size
+   control (see App.tsx) would resize headings/paragraphs but leave
+   inputs, textareas, and buttons stuck at the browser's tiny default. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 0.35em 0.6em;
+}
