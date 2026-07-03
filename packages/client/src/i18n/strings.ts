@@ -33,6 +33,7 @@ const en = {
   notQuite: "Not quite.",
   correctAnswer: "Correct answer:",
   practiceWritingLabel: "Practice writing it:",
+  repeat: "🔊 Repeat",
   continueLabel: "Continue",
 };
 
@@ -63,6 +64,7 @@ const zhTW: typeof en = {
   notQuite: "不太對。",
   correctAnswer: "正確答案：",
   practiceWritingLabel: "練習寫一次：",
+  repeat: "🔊 再聽一次",
   continueLabel: "繼續",
 };
 

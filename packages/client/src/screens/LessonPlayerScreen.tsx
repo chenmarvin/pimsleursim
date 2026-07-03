@@ -48,6 +48,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
   const [typedInput, setTypedInput] = useState("");
   const [practiceInput, setPracticeInput] = useState("");
   const [feedback, setFeedback] = useState<{ correct: boolean; score: number } | null>(null);
+  const [isRepeating, setIsRepeating] = useState(false);
   const masteryRef = useRef<MasteryMap>(initialMasteryMap);
   const statsRef = useRef<SessionStats>({ introduced: 0, reviewed: 0, correct: 0 });
 
@@ -147,6 +148,20 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
     setIndex((i) => i + 1);
   }
 
+  async function handleRepeat(...phrases: { text: string; languageCode: string }[]) {
+    if (isRepeating) return;
+    setIsRepeating(true);
+    try {
+      for (const { text, languageCode } of phrases) {
+        await speak(text, languageCode);
+      }
+    } catch (err) {
+      console.error("Repeat playback failed", err);
+    } finally {
+      setIsRepeating(false);
+    }
+  }
+
   if (phase === "complete" || !currentStep) {
     const stats = statsRef.current;
     return (
@@ -168,12 +183,31 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
           {t("introducing", { phrase: currentStep.targetPhrase })}
           {currentStep.kanaReading && currentStep.kanaReading !== currentStep.targetPhrase && (
             <span> ({currentStep.kanaReading})</span>
-          )}
+          )}{" "}
+          <button
+            onClick={() =>
+              handleRepeat(
+                { text: currentStep.targetPhrase, languageCode: targetLanguage },
+                { text: currentStep.sourcePhrase, languageCode: sourceLanguage },
+              )
+            }
+            disabled={isRepeating}
+          >
+            {t("repeat")}
+          </button>
         </p>
       )}
       {currentStep.type === "anticipate" && phase === "awaiting-input" && (
         <div>
-          <p>{t("howDoYouSay", { phrase: currentStep.sourcePhrase })}</p>
+          <p>
+            {t("howDoYouSay", { phrase: currentStep.sourcePhrase })}{" "}
+            <button
+              onClick={() => handleRepeat({ text: currentStep.sourcePhrase, languageCode: sourceLanguage })}
+              disabled={isRepeating}
+            >
+              {t("repeat")}
+            </button>
+          </p>
           <input
             type="text"
             value={typedInput}
@@ -193,7 +227,13 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
             {t("correctAnswer")} <strong>{currentStep.targetPhrase}</strong>
             {currentStep.kanaReading && currentStep.kanaReading !== currentStep.targetPhrase && (
               <span> ({currentStep.kanaReading})</span>
-            )}
+            )}{" "}
+            <button
+              onClick={() => handleRepeat({ text: currentStep.targetPhrase, languageCode: targetLanguage })}
+              disabled={isRepeating}
+            >
+              {t("repeat")}
+            </button>
           </p>
           <div>
             <label>
