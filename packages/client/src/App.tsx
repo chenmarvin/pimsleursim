@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { LanguageSwitcher } from "./components/LanguageSwitcher.js";
+import { UiLanguageProvider } from "./i18n/useUiLanguage.js";
 import { LessonPlayerScreen } from "./screens/LessonPlayerScreen.js";
 import { UploadConfigScreen, type LessonReadyPayload } from "./screens/UploadConfigScreen.js";
 
@@ -16,23 +18,27 @@ export function App() {
   const increaseFont = () => setFontSize((s) => Math.min(MAX_FONT_SIZE, s + 2));
 
   return (
-    <div style={{ fontSize: `${fontSize}px` }}>
-      <div style={{ display: "flex", gap: "0.5em", alignItems: "center", marginBottom: "0.5em" }}>
-        <span style={{ fontSize: "0.85em", color: "#555" }}>Font:</span>
-        <button onClick={decreaseFont} disabled={fontSize <= MIN_FONT_SIZE} aria-label="Decrease font size">A−</button>
-        <button onClick={increaseFont} disabled={fontSize >= MAX_FONT_SIZE} aria-label="Increase font size">A+</button>
+    <UiLanguageProvider>
+      <div style={{ fontSize: `${fontSize}px` }}>
+        <div style={{ display: "flex", gap: "0.5em", alignItems: "center", marginBottom: "0.5em" }}>
+          <span style={{ fontSize: "0.85em", color: "#555" }}>Font:</span>
+          <button onClick={decreaseFont} disabled={fontSize <= MIN_FONT_SIZE} aria-label="Decrease font size">A−</button>
+          <button onClick={increaseFont} disabled={fontSize >= MAX_FONT_SIZE} aria-label="Increase font size">A+</button>
+          <div style={{ flex: 1 }} />
+          <LanguageSwitcher />
+        </div>
+        {screen.name === "lesson" ? (
+          <LessonPlayerScreen
+            initialSteps={screen.payload.steps}
+            initialMasteryMap={screen.payload.masteryMap}
+            sourceLanguage={screen.payload.sourceLanguage}
+            targetLanguage={screen.payload.targetLanguage}
+            onFinish={() => setScreen({ name: "upload" })}
+          />
+        ) : (
+          <UploadConfigScreen onLessonReady={(payload) => setScreen({ name: "lesson", payload })} />
+        )}
       </div>
-      {screen.name === "lesson" ? (
-        <LessonPlayerScreen
-          initialSteps={screen.payload.steps}
-          initialMasteryMap={screen.payload.masteryMap}
-          sourceLanguage={screen.payload.sourceLanguage}
-          targetLanguage={screen.payload.targetLanguage}
-          onFinish={() => setScreen({ name: "upload" })}
-        />
-      ) : (
-        <UploadConfigScreen onLessonReady={(payload) => setScreen({ name: "lesson", payload })} />
-      )}
-    </div>
+    </UiLanguageProvider>
   );
 }

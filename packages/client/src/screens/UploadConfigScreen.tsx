@@ -1,6 +1,7 @@
 import { useState, type ChangeEvent } from "react";
 import type { LessonStep, MasteryMap, VocabItem } from "@pimsleursim/shared";
 import { extractVocabulary, fetchNextLesson } from "../api/client.js";
+import { useUiLanguage } from "../i18n/useUiLanguage.js";
 import { loadDeck, mergeCatalog } from "../storage/masteryStore.js";
 
 export interface LessonReadyPayload {
@@ -15,6 +16,7 @@ interface Props {
 }
 
 export function UploadConfigScreen({ onLessonReady }: Props) {
+  const { t } = useUiLanguage();
   const [rawText, setRawText] = useState("");
   const [sourceLanguage, setSourceLanguage] = useState("en");
   const [targetLanguage, setTargetLanguage] = useState("ja");
@@ -32,13 +34,13 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
       setLoadedFileName(file.name);
       setError(null);
     } catch {
-      setError(`Couldn't read "${file.name}" as text.`);
+      setError(t("errorFileRead", { fileName: file.name }));
     }
   }
 
   async function handleStart() {
     if (!rawText.trim()) {
-      setError("Paste some practice text first.");
+      setError(t("errorPasteFirst"));
       return;
     }
     setLoading(true);
@@ -76,7 +78,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         targetLanguage,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
+      setError(err instanceof Error ? err.message : t("errorGeneric"));
     } finally {
       setLoading(false);
     }
@@ -84,25 +86,25 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
 
   return (
     <div>
-      <h1>Pimsleursim</h1>
-      <p>Paste practice material in your target language, pick your languages, and start a lesson.</p>
+      <h1>{t("appTitle")}</h1>
+      <p>{t("appTagline")}</p>
       <div>
         <label>
-          Native language (BCP-47, e.g. en, zh-TW):{" "}
+          {t("nativeLanguageLabel")}{" "}
           <input value={sourceLanguage} onChange={(e) => setSourceLanguage(e.target.value)} />
         </label>
       </div>
       <div>
         <label>
-          Target language (BCP-47, e.g. ja, es):{" "}
+          {t("targetLanguageLabel")}{" "}
           <input value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)} />
         </label>
       </div>
       <div>
         <label>
-          Load a text file: <input type="file" accept=".txt,text/plain" onChange={handleFileSelect} />
+          {t("loadTextFileLabel")} <input type="file" accept=".txt,text/plain" onChange={handleFileSelect} />
         </label>
-        {loadedFileName && <span> Loaded "{loadedFileName}".</span>}
+        {loadedFileName && <span> {t("loadedFile", { fileName: loadedFileName })}</span>}
       </div>
       <textarea
         rows={10}
@@ -112,11 +114,11 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
           setRawText(e.target.value);
           setLoadedFileName(null);
         }}
-        placeholder="Paste an article, dialogue, or vocab list in the target language, or load a text file above..."
+        placeholder={t("textareaPlaceholder")}
       />
       <div>
         <button onClick={handleStart} disabled={loading}>
-          {loading ? "Preparing lesson..." : "Start lesson"}
+          {loading ? t("preparingLesson") : t("startLesson")}
         </button>
       </div>
       {error && <p style={{ color: "red" }}>{error}</p>}

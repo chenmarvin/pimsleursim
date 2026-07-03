@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import type { LessonStep, MasteryMap } from "@pimsleursim/shared";
 import { applyStepResult, computeInLessonRetestOffset, initMasteryState } from "@pimsleursim/shared";
 import { synthesizeSpeech } from "../api/client.js";
-import { playBase64Audio } from "../audio/audioPlayer.js";
+import { playBase64Audio, readAloudInBrowser } from "../audio/audioPlayer.js";
 import type { ResponseEvaluator } from "../evaluation/ResponseEvaluator.js";
 import { FuzzyTextEvaluator } from "../evaluation/fuzzyTextEvaluator.js";
+import { useUiLanguage } from "../i18n/useUiLanguage.js";
 import { saveMasteryMap } from "../storage/masteryStore.js";
 
 const evaluator: ResponseEvaluator = new FuzzyTextEvaluator();
@@ -30,15 +31,17 @@ const TEXT_ONLY_READ_DELAY_MS = 900;
 async function speak(text: string, languageCode: string): Promise<void> {
   const { audioBase64, mimeType } = await synthesizeSpeech({ text, languageCode });
   if (!audioBase64 || !mimeType) {
-    // No TTS provider configured — hold the step long enough to read it
-    // instead of flashing straight through with no natural audio pacing.
-    await new Promise((resolve) => setTimeout(resolve, TEXT_ONLY_READ_DELAY_MS));
+    // No server-side TTS provider configured — read it aloud with the
+    // browser's built-in speech synthesis instead of flashing straight
+    // through with no audio.
+    await readAloudInBrowser(text, languageCode, TEXT_ONLY_READ_DELAY_MS);
     return;
   }
   await playBase64Audio(audioBase64, mimeType);
 }
 
 export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLanguage, targetLanguage, onFinish }: Props) {
+  const { t } = useUiLanguage();
   const [queue, setQueue] = useState<LessonStep[]>(initialSteps);
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("playing");
@@ -148,25 +151,21 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
     const stats = statsRef.current;
     return (
       <div>
-        <h2>Lesson complete</h2>
-        <p>New items introduced: {stats.introduced}</p>
-        <p>Reviews completed: {stats.reviewed}</p>
-        <p>
-          Accuracy: {stats.reviewed > 0 ? Math.round((stats.correct / stats.reviewed) * 100) : 0}%
-        </p>
-        <button onClick={onFinish}>Back to upload</button>
+        <h2>{t("lessonComplete")}</h2>
+        <p>{t("newItemsIntroduced", { count: stats.introduced })}</p>
+        <p>{t("reviewsCompleted", { count: stats.reviewed })}</p>
+        <p>{t("accuracy", { percent: stats.reviewed > 0 ? Math.round((stats.correct / stats.reviewed) * 100) : 0 })}</p>
+        <button onClick={onFinish}>{t("backToUpload")}</button>
       </div>
     );
   }
 
   return (
     <div>
-      <p>
-        Step {index + 1} / {queue.length}
-      </p>
+      <p>{t("stepProgress", { current: index + 1, total: queue.length })}</p>
       {currentStep.type === "introduce" && (
         <p>
-          Introducing: {currentStep.targetPhrase}
+          {t("introducing", { phrase: currentStep.targetPhrase })}
           {currentStep.kanaReading && currentStep.kanaReading !== currentStep.targetPhrase && (
             <span> ({currentStep.kanaReading})</span>
           )}
@@ -174,7 +173,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
       )}
       {currentStep.type === "anticipate" && phase === "awaiting-input" && (
         <div>
-          <p>How do you say: "{currentStep.sourcePhrase}"?</p>
+          <p>{t("howDoYouSay", { phrase: currentStep.sourcePhrase })}</p>
           <input
             type="text"
             value={typedInput}
@@ -184,21 +183,21 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
             }}
             autoFocus
           />
-          <button onClick={handleSubmitAnswer}>Submit</button>
+          <button onClick={handleSubmitAnswer}>{t("submit")}</button>
         </div>
       )}
       {currentStep.type === "anticipate" && phase === "revealing" && feedback && (
         <div>
-          <p>{feedback.correct ? "Correct!" : "Not quite."}</p>
+          <p>{feedback.correct ? t("correct") : t("notQuite")}</p>
           <p>
-            Correct answer: <strong>{currentStep.targetPhrase}</strong>
+            {t("correctAnswer")} <strong>{currentStep.targetPhrase}</strong>
             {currentStep.kanaReading && currentStep.kanaReading !== currentStep.targetPhrase && (
               <span> ({currentStep.kanaReading})</span>
             )}
           </p>
           <div>
             <label>
-              Practice writing it:{" "}
+              {t("practiceWritingLabel")}{" "}
               <input
                 type="text"
                 value={practiceInput}
@@ -209,7 +208,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
               />
             </label>
           </div>
-          <button onClick={handleContinue}>Continue</button>
+          <button onClick={handleContinue}>{t("continueLabel")}</button>
         </div>
       )}
     </div>
