@@ -25,10 +25,16 @@ const JapaneseVocabItemSchema = BaseVocabItemSchema.extend({
     "REQUIRED: the complete hiragana reading of targetPhrase. Always provide this, even when targetPhrase is already kana. " +
     "Convert katakana to hiragana too. Examples: '食べる'→'たべる', '今日'→'きょう', 'アイスクリーム'→'あいすくりいむ', 'コーヒー'→'こおひい'"
   ),
+  alternateReadings: z.array(z.string()).optional().describe(
+    "Other hiragana readings that are ALSO commonly used for this exact targetPhrase and should be accepted as correct answers, " +
+    "besides kanaReading. Most items have none — only list real alternates. Examples: '七' has kanaReading 'しち' and " +
+    "alternateReadings ['なな']; '四' has kanaReading 'よん' and alternateReadings ['し']; '二十歳' has kanaReading 'はたち' with no alternates."
+  ),
 });
 
 const VocabItemSchema = BaseVocabItemSchema.extend({
   kanaReading: z.string().optional(),
+  alternateReadings: z.array(z.string()).optional(),
 });
 
 function makeExtractionSchema(isJapanese: boolean) {
@@ -53,7 +59,8 @@ function buildPrompt(opts: {
 }): string {
   const isJapanese = opts.targetLanguageCode.startsWith("ja");
   const kanaInstruction = isJapanese
-    ? "\n- For EVERY Japanese item you MUST provide kanaReading: the complete hiragana reading (convert kanji AND katakana to hiragana). Examples: '食べる'→'たべる', '今日'→'きょう', 'アイスクリーム'→'あいすくりいむ', 'コーヒー'→'こおひい'. Omitting kanaReading will break the app."
+    ? "\n- For EVERY Japanese item you MUST provide kanaReading: the complete hiragana reading (convert kanji AND katakana to hiragana). Examples: '食べる'→'たべる', '今日'→'きょう', 'アイスクリーム'→'あいすくりいむ', 'コーヒー'→'こおひい'. Omitting kanaReading will break the app." +
+      "\n- If the item has another hiragana reading that Japanese speakers also commonly use interchangeably (e.g. numbers like 七/しち which is equally often read なな, or 四/よん which is equally often read し), list it in alternateReadings so either answer is accepted. Leave alternateReadings empty for the (much more common) case where there's only one natural reading."
     : "";
 
   return `You are a language-teaching content designer following the Pimsleur method.
@@ -116,6 +123,7 @@ export async function extractVocabulary(opts: {
     sourcePhrase: item.sourcePhrase,
     notes: item.notes,
     kanaReading: item.kanaReading,
+    alternateReadings: item.alternateReadings,
   }));
 
   return { items, truncated, processedCharCount: rawText.length, totalCharCount };

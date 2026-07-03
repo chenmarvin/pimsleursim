@@ -40,6 +40,11 @@ async function speak(text: string, languageCode: string): Promise<void> {
   await playBase64Audio(audioBase64, mimeType);
 }
 
+function readingDisplay(step: LessonStep): string | null {
+  if (!step.kanaReading || step.kanaReading === step.targetPhrase) return null;
+  return [step.kanaReading, ...(step.alternateReadings ?? [])].join("／");
+}
+
 export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLanguage, targetLanguage, onFinish }: Props) {
   const { t } = useUiLanguage();
   const [queue, setQueue] = useState<LessonStep[]>(initialSteps);
@@ -107,7 +112,13 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
 
   async function handleSubmitAnswer() {
     if (!currentStep) return;
-    const result = await evaluator.evaluate(typedInput, currentStep.targetPhrase, targetLanguage, currentStep.kanaReading);
+    const result = await evaluator.evaluate(
+      typedInput,
+      currentStep.targetPhrase,
+      targetLanguage,
+      currentStep.kanaReading,
+      currentStep.alternateReadings,
+    );
     setFeedback({ correct: result.correct, score: result.score });
     setPhase("revealing");
     statsRef.current.reviewed += 1;
@@ -129,6 +140,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
         targetPhrase: currentStep.targetPhrase,
         sourcePhrase: currentStep.sourcePhrase,
         kanaReading: currentStep.kanaReading,
+        alternateReadings: currentStep.alternateReadings,
       };
       setQueue((q) => {
         const next = [...q];
@@ -181,9 +193,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
       {currentStep.type === "introduce" && (
         <p>
           {t("introducing", { phrase: currentStep.targetPhrase })}
-          {currentStep.kanaReading && currentStep.kanaReading !== currentStep.targetPhrase && (
-            <span> ({currentStep.kanaReading})</span>
-          )}{" "}
+          {readingDisplay(currentStep) && <span> ({readingDisplay(currentStep)})</span>}{" "}
           <button
             onClick={() =>
               handleRepeat(
@@ -225,9 +235,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
           <p>{feedback.correct ? t("correct") : t("notQuite")}</p>
           <p>
             {t("correctAnswer")} <strong>{currentStep.targetPhrase}</strong>
-            {currentStep.kanaReading && currentStep.kanaReading !== currentStep.targetPhrase && (
-              <span> ({currentStep.kanaReading})</span>
-            )}{" "}
+            {readingDisplay(currentStep) && <span> ({readingDisplay(currentStep)})</span>}{" "}
             <button
               onClick={() => handleRepeat({ text: currentStep.targetPhrase, languageCode: targetLanguage })}
               disabled={isRepeating}

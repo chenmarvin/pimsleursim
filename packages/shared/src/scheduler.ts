@@ -171,6 +171,7 @@ export function buildLessonPlan(input: SchedulerInput): LessonPlan {
       targetPhrase: item.targetPhrase,
       sourcePhrase: item.sourcePhrase,
       kanaReading: item.kanaReading,
+      alternateReadings: item.alternateReadings,
     });
   };
 

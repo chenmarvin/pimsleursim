@@ -84,7 +84,13 @@ export class FuzzyTextEvaluator implements ResponseEvaluator {
 
   constructor(private readonly threshold: number = DEFAULT_THRESHOLD) {}
 
-  async evaluate(userInput: string, expectedPhrase: string, languageCode: string, kanaReading?: string): Promise<EvaluationResult> {
+  async evaluate(
+    userInput: string,
+    expectedPhrase: string,
+    languageCode: string,
+    kanaReading?: string,
+    alternateReadings?: string[],
+  ): Promise<EvaluationResult> {
     const normalizedActual = normalize(userInput);
     const normalizedExpected = normalize(expectedPhrase);
     let score = similarity(normalizedActual, normalizedExpected);
@@ -96,12 +102,15 @@ export class FuzzyTextEvaluator implements ResponseEvaluator {
       const hiraganaExpected = normalizeJapanese(expectedPhrase);
       score = Math.max(score, similarity(hiraganaActual, hiraganaExpected));
 
-      // If extraction provided a hiragana reading (for kanji phrases), also
-      // compare the user's normalized input against it.
-      if (kanaReading) {
-        const hiraganaReading = normalizeJapanese(kanaReading);
+      // Compare against the primary reading plus any other reading that's
+      // equally valid for this exact phrase (e.g. 七 accepts both しち and な
+      // な), so any of them scores as a correct answer, not just the one
+      // extraction happened to pick as kanaReading.
+      const readings = [kanaReading, ...(alternateReadings ?? [])].filter((r): r is string => Boolean(r));
+      for (const reading of readings) {
+        const hiraganaReading = normalizeJapanese(reading);
         score = Math.max(score, similarity(hiraganaActual, hiraganaReading));
-        score = Math.max(score, similarity(normalizedActual, normalize(kanaReading)));
+        score = Math.max(score, similarity(normalizedActual, normalize(reading)));
       }
     }
 

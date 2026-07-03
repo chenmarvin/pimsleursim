@@ -11,5 +11,11 @@ export interface ResponseEvaluator {
   // synchronously, so a future speech-recognition evaluator (which would
   // need to call an STT service) can implement this same interface without
   // a breaking signature change.
-  evaluate(userInput: string, expectedPhrase: string, languageCode: string, kanaReading?: string): Promise<EvaluationResult>;
+  evaluate(
+    userInput: string,
+    expectedPhrase: string,
+    languageCode: string,
+    kanaReading?: string,
+    alternateReadings?: string[],
+  ): Promise<EvaluationResult>;
 }

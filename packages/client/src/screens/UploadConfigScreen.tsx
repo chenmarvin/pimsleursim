@@ -61,6 +61,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         sourcePhrase: item.sourcePhrase,
         notes: item.notes,
         kanaReading: item.kanaReading,
+        alternateReadings: item.alternateReadings,
       }));
 
       const existingDeck = loadDeck();

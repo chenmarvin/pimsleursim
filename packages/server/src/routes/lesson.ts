@@ -12,6 +12,7 @@ const VocabItemSchema = z.object({
   sourcePhrase: z.string(),
   notes: z.string().optional(),
   kanaReading: z.string().optional(),
+  alternateReadings: z.array(z.string()).optional(),
 });
 
 const MasteryStateSchema = z.object({

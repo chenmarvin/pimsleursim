@@ -8,6 +8,7 @@ export interface VocabItem {
   sourcePhrase: string;
   notes?: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
+  alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
 }
 
 export type ItemLifecycleStage = "new" | "in_lesson" | "graduated" | "mastered";
@@ -36,6 +37,7 @@ export interface LessonStep {
   targetPhrase: string;
   sourcePhrase: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
+  alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
 }
 
 export interface SchedulerConfig {
@@ -65,6 +67,7 @@ export interface ExtractedItem {
   sourcePhrase: string;
   notes?: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
+  alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
 }
 
 export interface ExtractResponse {
