@@ -8,7 +8,7 @@ const ExtractRequestSchema = z.object({
   sourceLanguage: z.string().min(1),
   targetLanguage: z.string().min(1),
   rawText: z.string().min(1),
-  maxItems: z.number().int().positive().max(50).default(20),
+  maxItems: z.number().int().positive().max(60).default(20),
 });
 
 extractRouter.post("/", async (req, res, next) => {

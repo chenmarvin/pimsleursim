@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent } from "react";
 import type { LessonStep, MasteryMap, VocabItem } from "@pimsleursim/shared";
+import { DEFAULT_SCHEDULER_CONFIG } from "@pimsleursim/shared";
 import { extractVocabulary, fetchNextLesson } from "../api/client.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
 import { loadDeck, mergeCatalog } from "../storage/masteryStore.js";
@@ -50,7 +51,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         sourceLanguage,
         targetLanguage,
         rawText,
-        maxItems: 20,
+        maxItems: 60,
       });
 
       const newVocabItems: VocabItem[] = extraction.items.map((item) => ({
@@ -67,9 +68,23 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
       const existingDeck = loadDeck();
       const mergedCatalog = mergeCatalog(existingDeck.catalog, newVocabItems);
 
+      // The default scheduler config caps how many *new* items get
+      // introduced in a single lesson plan (maxNewItemsPerLesson) and how
+      // many total steps the plan may contain (maxStepsPerLesson), so that
+      // a daily/recurring session doesn't dump the whole catalog on the
+      // learner at once. But when the learner just uploaded a batch of
+      // text, they expect every extracted item to show up in this sitting
+      // — so raise both caps to fit the whole merged catalog (each new
+      // item costs at most an "introduce" + one first-retest "anticipate"
+      // step, hence the x4 buffer to also leave room for interleaved
+      // due-review steps).
       const plan = await fetchNextLesson({
         items: mergedCatalog,
         masteryMap: existingDeck.masteryMap,
+        config: {
+          maxNewItemsPerLesson: mergedCatalog.length,
+          maxStepsPerLesson: Math.max(DEFAULT_SCHEDULER_CONFIG.maxStepsPerLesson, mergedCatalog.length * 4),
+        },
       });
 
       onLessonReady({
