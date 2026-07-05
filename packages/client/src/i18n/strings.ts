@@ -20,6 +20,9 @@ const en = {
   errorPasteFirst: "Paste some practice text first.",
   errorFileRead: 'Couldn\'t read "{{fileName}}" as text.',
   errorGeneric: "Something went wrong.",
+  warningTruncated:
+    "Only the first {{processed}} of {{total}} characters were processed — the rest was skipped.",
+  continueAnyway: "Continue anyway",
   lessonComplete: "Lesson complete",
   newItemsIntroduced: "New items introduced: {{count}}",
   reviewsCompleted: "Reviews completed: {{count}}",
@@ -51,6 +54,8 @@ const zhTW: typeof en = {
   errorPasteFirst: "請先貼上練習文本。",
   errorFileRead: "無法將「{{fileName}}」讀取為文字檔。",
   errorGeneric: "發生錯誤。",
+  warningTruncated: "僅處理了前 {{processed}} 個字元（共 {{total}} 個），其餘已略過。",
+  continueAnyway: "仍要繼續",
   lessonComplete: "課程完成",
   newItemsIntroduced: "新學項目：{{count}}",
   reviewsCompleted: "已複習：{{count}}",

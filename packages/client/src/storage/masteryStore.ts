@@ -21,11 +21,28 @@ export function saveMasteryMap(masteryMap: MasteryMap): void {
   localStorage.setItem(MASTERY_KEY, JSON.stringify(masteryMap));
 }
 
-/** Merge newly extracted items into the catalog, keyed by item id, without dropping existing items. */
+// Extraction mints a fresh random id per call, so the same vocab phrase
+// re-extracted from a different upload (e.g. a word appearing in two
+// lessons) would otherwise land in the catalog twice under different ids,
+// each with its own independent (and initially empty) mastery tracking.
+function dedupeKey(item: VocabItem): string {
+  return `${item.targetLanguage}::${item.targetPhrase.trim().toLowerCase()}`;
+}
+
+/**
+ * Merge newly extracted items into the catalog, keyed by item id, without
+ * dropping existing items. New items whose targetPhrase already exists in
+ * the catalog are skipped so the existing entry's id (and mastery progress)
+ * is preserved instead of being shadowed by a duplicate.
+ */
 export function mergeCatalog(existing: VocabItem[], newItems: VocabItem[]): VocabItem[] {
   const byId = new Map(existing.map((item) => [item.id, item]));
+  const byPhrase = new Map(existing.map((item) => [dedupeKey(item), item]));
   for (const item of newItems) {
+    const key = dedupeKey(item);
+    if (byPhrase.has(key)) continue;
     byId.set(item.id, item);
+    byPhrase.set(key, item);
   }
   const merged = Array.from(byId.values());
   localStorage.setItem(CATALOG_KEY, JSON.stringify(merged));

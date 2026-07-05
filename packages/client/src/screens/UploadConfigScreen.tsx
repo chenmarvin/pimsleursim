@@ -24,6 +24,8 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadedFileName, setLoadedFileName] = useState<string | null>(null);
+  const [truncationNotice, setTruncationNotice] = useState<{ processed: number; total: number } | null>(null);
+  const [pendingPayload, setPendingPayload] = useState<LessonReadyPayload | null>(null);
 
   async function handleFileSelect(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -46,6 +48,8 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
     }
     setLoading(true);
     setError(null);
+    setTruncationNotice(null);
+    setPendingPayload(null);
     try {
       const extraction = await extractVocabulary({
         sourceLanguage,
@@ -87,17 +91,31 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         },
       });
 
-      onLessonReady({
+      const payload: LessonReadyPayload = {
         steps: plan.steps,
         masteryMap: plan.updatedMasteryMap,
         sourceLanguage,
         targetLanguage,
-      });
+      };
+
+      if (extraction.truncated) {
+        // Don't silently drop the tail of a long paste — hold the already-
+        // computed lesson and let the learner explicitly acknowledge that
+        // only part of their text was analyzed before starting it.
+        setPendingPayload(payload);
+        setTruncationNotice({ processed: extraction.processedCharCount, total: extraction.totalCharCount });
+      } else {
+        onLessonReady(payload);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : t("errorGeneric"));
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleContinueAfterTruncation() {
+    if (pendingPayload) onLessonReady(pendingPayload);
   }
 
   return (
@@ -138,6 +156,12 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         </button>
       </div>
       {error && <p style={{ color: "red" }}>{error}</p>}
+      {truncationNotice && (
+        <p style={{ color: "darkorange" }}>
+          {t("warningTruncated", { processed: truncationNotice.processed, total: truncationNotice.total })}{" "}
+          <button onClick={handleContinueAfterTruncation}>{t("continueAnyway")}</button>
+        </p>
+      )}
     </div>
   );
 }
