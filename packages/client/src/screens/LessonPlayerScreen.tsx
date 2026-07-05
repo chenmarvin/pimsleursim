@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import type { LessonStep, MasteryMap } from "@pimsleursim/shared";
 import { applyStepResult, computeInLessonRetestOffset, initMasteryState } from "@pimsleursim/shared";
-import { synthesizeSpeech } from "../api/client.js";
-import { playBase64Audio, readAloudInBrowser } from "../audio/audioPlayer.js";
+import { speakText as speak } from "../audio/audioPlayer.js";
+import { ConversationView } from "../components/ConversationView.js";
 import type { ResponseEvaluator } from "../evaluation/ResponseEvaluator.js";
 import { FuzzyTextEvaluator } from "../evaluation/fuzzyTextEvaluator.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
-import { saveMasteryMap } from "../storage/masteryStore.js";
+import { loadDeck, saveMasteryMap } from "../storage/masteryStore.js";
 
 const evaluator: ResponseEvaluator = new FuzzyTextEvaluator();
 
@@ -24,20 +24,6 @@ interface SessionStats {
   introduced: number;
   reviewed: number;
   correct: number;
-}
-
-const TEXT_ONLY_READ_DELAY_MS = 900;
-
-async function speak(text: string, languageCode: string): Promise<void> {
-  const { audioBase64, mimeType } = await synthesizeSpeech({ text, languageCode });
-  if (!audioBase64 || !mimeType) {
-    // No server-side TTS provider configured — read it aloud with the
-    // browser's built-in speech synthesis instead of flashing straight
-    // through with no audio.
-    await readAloudInBrowser(text, languageCode, TEXT_ONLY_READ_DELAY_MS);
-    return;
-  }
-  await playBase64Audio(audioBase64, mimeType);
 }
 
 function readingDisplay(step: LessonStep): string | null {
@@ -182,6 +168,11 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
         <p>{t("newItemsIntroduced", { count: stats.introduced })}</p>
         <p>{t("reviewsCompleted", { count: stats.reviewed })}</p>
         <p>{t("accuracy", { percent: stats.reviewed > 0 ? Math.round((stats.correct / stats.reviewed) * 100) : 0 })}</p>
+        <ConversationView
+          getVocab={() => loadDeck().catalog}
+          sourceLanguage={sourceLanguage}
+          targetLanguage={targetLanguage}
+        />
         <button onClick={onFinish}>{t("backToUpload")}</button>
       </div>
     );

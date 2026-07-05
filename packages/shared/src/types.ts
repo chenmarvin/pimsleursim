@@ -88,6 +88,22 @@ export interface LessonPlanResponse {
   updatedMasteryMap: MasteryMap;
 }
 
+export interface ConversationLine {
+  speaker: string; // e.g. "A" / "B" — not a specific character name
+  targetText: string;
+  sourceText: string; // idiomatic translation of targetText
+}
+
+export interface ConversationRequest {
+  items: VocabItem[]; // catalog to draw vocabulary from
+  sourceLanguage: string;
+  targetLanguage: string;
+}
+
+export interface ConversationResponse {
+  lines: ConversationLine[];
+}
+
 export interface TTSRequest {
   text: string;
   languageCode: string;

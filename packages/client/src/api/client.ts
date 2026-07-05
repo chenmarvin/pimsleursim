@@ -1,4 +1,6 @@
 import type {
+  ConversationRequest,
+  ConversationResponse,
   ExtractRequest,
   ExtractResponse,
   LessonPlanRequest,
@@ -30,4 +32,8 @@ export function fetchNextLesson(req: LessonPlanRequest): Promise<LessonPlanRespo
 
 export function synthesizeSpeech(req: TTSRequest): Promise<TTSResponse> {
   return postJson<TTSResponse>("/api/tts", req);
+}
+
+export function generateConversation(req: ConversationRequest): Promise<ConversationResponse> {
+  return postJson<ConversationResponse>("/api/conversation", req);
 }

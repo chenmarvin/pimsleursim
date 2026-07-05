@@ -38,6 +38,8 @@ const en = {
   practiceWritingLabel: "Practice writing it:",
   repeat: "🔊 Repeat",
   continueLabel: "Continue",
+  generateConversation: "Generate a conversation",
+  generatingConversation: "Generating conversation...",
 };
 
 const zhTW: typeof en = {
@@ -71,6 +73,8 @@ const zhTW: typeof en = {
   practiceWritingLabel: "練習寫一次：",
   repeat: "🔊 再聽一次",
   continueLabel: "繼續",
+  generateConversation: "產生對話",
+  generatingConversation: "對話產生中...",
 };
 
 export const STRINGS: Record<UiLanguage, typeof en> = { en, "zh-TW": zhTW };

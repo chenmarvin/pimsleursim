@@ -5,6 +5,7 @@ import cors from "cors";
 import express, { type NextFunction, type Request, type Response } from "express";
 import { ZodError } from "zod";
 import { config } from "./config.js";
+import { conversationRouter } from "./routes/conversation.js";
 import { extractRouter } from "./routes/extract.js";
 import { lessonRouter } from "./routes/lesson.js";
 import { ttsRouter } from "./routes/tts.js";
@@ -17,6 +18,7 @@ app.use(express.json({ limit: "5mb" }));
 app.use("/api/extract", extractRouter);
 app.use("/api/lesson", lessonRouter);
 app.use("/api/tts", ttsRouter);
+app.use("/api/conversation", conversationRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

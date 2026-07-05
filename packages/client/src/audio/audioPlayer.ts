@@ -1,3 +1,19 @@
+import { synthesizeSpeech } from "../api/client.js";
+
+const TEXT_ONLY_READ_DELAY_MS = 900;
+
+export async function speakText(text: string, languageCode: string): Promise<void> {
+  const { audioBase64, mimeType } = await synthesizeSpeech({ text, languageCode });
+  if (!audioBase64 || !mimeType) {
+    // No server-side TTS provider configured — read it aloud with the
+    // browser's built-in speech synthesis instead of flashing straight
+    // through with no audio.
+    await readAloudInBrowser(text, languageCode, TEXT_ONLY_READ_DELAY_MS);
+    return;
+  }
+  await playBase64Audio(audioBase64, mimeType);
+}
+
 export function playBase64Audio(audioBase64: string, mimeType: string): Promise<void> {
   return new Promise((resolve, reject) => {
     const audio = new Audio(`data:${mimeType};base64,${audioBase64}`);
