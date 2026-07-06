@@ -172,6 +172,9 @@ export function buildLessonPlan(input: SchedulerInput): LessonPlan {
       sourcePhrase: item.sourcePhrase,
       kanaReading: item.kanaReading,
       alternateReadings: item.alternateReadings,
+      jlptLevel: item.jlptLevel,
+      kind: item.kind,
+      grammarExplanation: item.grammarExplanation,
     });
   };
 

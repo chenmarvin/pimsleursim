@@ -127,6 +127,9 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
         sourcePhrase: currentStep.sourcePhrase,
         kanaReading: currentStep.kanaReading,
         alternateReadings: currentStep.alternateReadings,
+        jlptLevel: currentStep.jlptLevel,
+        kind: currentStep.kind,
+        grammarExplanation: currentStep.grammarExplanation,
       };
       setQueue((q) => {
         const next = [...q];
@@ -180,7 +183,17 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
 
   return (
     <div>
-      <p>{t("stepProgress", { current: index + 1, total: queue.length })}</p>
+      <p>
+        {t("stepProgress", { current: index + 1, total: queue.length })}
+        {currentStep.jlptLevel && <span> [{currentStep.jlptLevel}]</span>}
+      </p>
+      {currentStep.kind === "grammar" && currentStep.grammarExplanation && (
+        <p>
+          <em>
+            {t("grammarPatternLabel")} {currentStep.grammarExplanation}
+          </em>
+        </p>
+      )}
       {currentStep.type === "introduce" && (
         <p>
           {t("introducing", { phrase: currentStep.targetPhrase })}

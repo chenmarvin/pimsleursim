@@ -1,5 +1,8 @@
 export type ItemId = string;
 
+// JLPT vocabulary/grammar level, N5 (beginner) through N1 (advanced).
+export type JlptLevel = "N5" | "N4" | "N3" | "N2" | "N1";
+
 export interface VocabItem {
   id: ItemId;
   sourceLanguage: string; // BCP-47, e.g. "zh-TW"
@@ -9,6 +12,44 @@ export interface VocabItem {
   notes?: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
   alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
+  jlptLevel?: JlptLevel;
+  // Present (and "grammar") only for the synthetic drill items that
+  // buildGrammarDrillItems() expands from a GrammarPoint — plain vocab
+  // items leave this undefined.
+  kind?: "vocab" | "grammar";
+  grammarExplanation?: string; // pattern name + usage note, shown for grammar-drill steps
+}
+
+// One slot-filler used to turn a GrammarPoint into a concrete drillable
+// sentence, e.g. for the pattern "~に行きます" an example might slot in
+// "東京" to produce "東京に行きます".
+export interface GrammarDrillExample {
+  slotPhrase: string;
+  slotReading?: string; // hiragana reading of slotPhrase, for Japanese
+  slotTranslation: string;
+}
+
+// A recurring grammar pattern, modeled as fixed text surrounding a slot so
+// it can be combined with different vocab items for Pimsleur-style
+// substitution drilling ("hear the pattern, then produce it again with a
+// new word plugged in").
+export interface ExtractedGrammarPoint {
+  id: ItemId;
+  jlptLevel?: JlptLevel;
+  name: string; // short label, e.g. "～に行きます (go to ~)"
+  explanation: string; // 1-2 sentence usage note in the learner's native language
+  templateBefore: string; // fixed target-language text before the slot
+  templateAfter: string; // fixed target-language text after the slot
+  readingBefore?: string; // hiragana reading of templateBefore
+  readingAfter?: string; // hiragana reading of templateAfter
+  translationBefore: string; // native-language text before the slot's translation
+  translationAfter: string; // native-language text after the slot's translation
+  examples: GrammarDrillExample[];
+}
+
+export interface GrammarPoint extends ExtractedGrammarPoint {
+  sourceLanguage: string;
+  targetLanguage: string;
 }
 
 export type ItemLifecycleStage = "new" | "in_lesson" | "graduated" | "mastered";
@@ -38,6 +79,9 @@ export interface LessonStep {
   sourcePhrase: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
   alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
+  jlptLevel?: JlptLevel;
+  kind?: "vocab" | "grammar";
+  grammarExplanation?: string;
 }
 
 export interface SchedulerConfig {
@@ -68,10 +112,12 @@ export interface ExtractedItem {
   notes?: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
   alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
+  jlptLevel?: JlptLevel;
 }
 
 export interface ExtractResponse {
   items: ExtractedItem[];
+  grammarPoints: ExtractedGrammarPoint[];
   truncated: boolean;
   processedCharCount: number;
   totalCharCount: number;

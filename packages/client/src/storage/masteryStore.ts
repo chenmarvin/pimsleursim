@@ -1,18 +1,22 @@
-import type { MasteryMap, VocabItem } from "@pimsleursim/shared";
+import type { GrammarPoint, MasteryMap, VocabItem } from "@pimsleursim/shared";
 
 const CATALOG_KEY = "pimsleursim.catalog.v1";
+const GRAMMAR_KEY = "pimsleursim.grammar.v1";
 const MASTERY_KEY = "pimsleursim.mastery.v1";
 
 export interface DeckState {
   catalog: VocabItem[];
+  grammarPoints: GrammarPoint[];
   masteryMap: MasteryMap;
 }
 
 export function loadDeck(): DeckState {
   const catalogRaw = localStorage.getItem(CATALOG_KEY);
+  const grammarRaw = localStorage.getItem(GRAMMAR_KEY);
   const masteryRaw = localStorage.getItem(MASTERY_KEY);
   return {
     catalog: catalogRaw ? (JSON.parse(catalogRaw) as VocabItem[]) : [],
+    grammarPoints: grammarRaw ? (JSON.parse(grammarRaw) as GrammarPoint[]) : [],
     masteryMap: masteryRaw ? (JSON.parse(masteryRaw) as MasteryMap) : {},
   };
 }
@@ -46,5 +50,24 @@ export function mergeCatalog(existing: VocabItem[], newItems: VocabItem[]): Voca
   }
   const merged = Array.from(byId.values());
   localStorage.setItem(CATALOG_KEY, JSON.stringify(merged));
+  return merged;
+}
+
+function grammarDedupeKey(gp: GrammarPoint): string {
+  return `${gp.targetLanguage}::${gp.name.trim().toLowerCase()}`;
+}
+
+/** Same dedupe-by-content strategy as mergeCatalog, keyed on the grammar point's name. */
+export function mergeGrammarPoints(existing: GrammarPoint[], newPoints: GrammarPoint[]): GrammarPoint[] {
+  const byId = new Map(existing.map((gp) => [gp.id, gp]));
+  const byName = new Map(existing.map((gp) => [grammarDedupeKey(gp), gp]));
+  for (const gp of newPoints) {
+    const key = grammarDedupeKey(gp);
+    if (byName.has(key)) continue;
+    byId.set(gp.id, gp);
+    byName.set(key, gp);
+  }
+  const merged = Array.from(byId.values());
+  localStorage.setItem(GRAMMAR_KEY, JSON.stringify(merged));
   return merged;
 }

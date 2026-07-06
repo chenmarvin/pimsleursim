@@ -1,9 +1,9 @@
 import { useState, type ChangeEvent } from "react";
-import type { LessonStep, MasteryMap, VocabItem } from "@pimsleursim/shared";
-import { DEFAULT_SCHEDULER_CONFIG } from "@pimsleursim/shared";
+import type { GrammarPoint, JlptLevel, LessonStep, MasteryMap, VocabItem } from "@pimsleursim/shared";
+import { buildGrammarDrillItems, DEFAULT_SCHEDULER_CONFIG, isAtOrBelowJlptLevel, JLPT_LEVELS } from "@pimsleursim/shared";
 import { extractVocabulary, fetchNextLesson } from "../api/client.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
-import { loadDeck, mergeCatalog } from "../storage/masteryStore.js";
+import { loadDeck, mergeCatalog, mergeGrammarPoints } from "../storage/masteryStore.js";
 
 export interface LessonReadyPayload {
   steps: LessonStep[];
@@ -21,6 +21,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
   const [rawText, setRawText] = useState("");
   const [sourceLanguage, setSourceLanguage] = useState("en");
   const [targetLanguage, setTargetLanguage] = useState("ja");
+  const [maxJlptLevel, setMaxJlptLevel] = useState<JlptLevel | "all">("all");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loadedFileName, setLoadedFileName] = useState<string | null>(null);
@@ -67,10 +68,31 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         notes: item.notes,
         kanaReading: item.kanaReading,
         alternateReadings: item.alternateReadings,
+        jlptLevel: item.jlptLevel,
+      }));
+
+      const newGrammarPoints: GrammarPoint[] = extraction.grammarPoints.map((gp) => ({
+        ...gp,
+        sourceLanguage,
+        targetLanguage,
       }));
 
       const existingDeck = loadDeck();
       const mergedCatalog = mergeCatalog(existingDeck.catalog, newVocabItems);
+      const mergedGrammarPoints = mergeGrammarPoints(existingDeck.grammarPoints, newGrammarPoints);
+
+      // Filter to the learner's target JLPT level — untagged items always
+      // pass, so this narrows down leveled content without hiding anything
+      // the extractor couldn't confidently level.
+      const filteredVocab =
+        maxJlptLevel === "all" ? mergedCatalog : mergedCatalog.filter((item) => isAtOrBelowJlptLevel(item.jlptLevel, maxJlptLevel));
+      const filteredGrammarPoints =
+        maxJlptLevel === "all" ? mergedGrammarPoints : mergedGrammarPoints.filter((gp) => isAtOrBelowJlptLevel(gp.jlptLevel, maxJlptLevel));
+
+      // Grammar points are drilled through the same scheduler as vocab —
+      // buildGrammarDrillItems() expands each pattern's substitution
+      // examples into ordinary VocabItem-shaped entries first.
+      const allItems: VocabItem[] = [...filteredVocab, ...buildGrammarDrillItems(filteredGrammarPoints)];
 
       // The default scheduler config caps how many *new* items get
       // introduced in a single lesson plan (maxNewItemsPerLesson) and how
@@ -83,11 +105,11 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
       // step, hence the x4 buffer to also leave room for interleaved
       // due-review steps).
       const plan = await fetchNextLesson({
-        items: mergedCatalog,
+        items: allItems,
         masteryMap: existingDeck.masteryMap,
         config: {
-          maxNewItemsPerLesson: mergedCatalog.length,
-          maxStepsPerLesson: Math.max(DEFAULT_SCHEDULER_CONFIG.maxStepsPerLesson, mergedCatalog.length * 4),
+          maxNewItemsPerLesson: allItems.length,
+          maxStepsPerLesson: Math.max(DEFAULT_SCHEDULER_CONFIG.maxStepsPerLesson, allItems.length * 4),
         },
       });
 
@@ -134,6 +156,21 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
           <input value={targetLanguage} onChange={(e) => setTargetLanguage(e.target.value)} />
         </label>
       </div>
+      {targetLanguage.startsWith("ja") && (
+        <div>
+          <label>
+            {t("jlptLevelLabel")}{" "}
+            <select value={maxJlptLevel} onChange={(e) => setMaxJlptLevel(e.target.value as JlptLevel | "all")}>
+              <option value="all">{t("jlptLevelAll")}</option>
+              {JLPT_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
       <div>
         <label>
           {t("loadTextFileLabel")} <input type="file" accept=".txt,text/plain" onChange={handleFileSelect} />

@@ -13,6 +13,9 @@ const VocabItemSchema = z.object({
   notes: z.string().optional(),
   kanaReading: z.string().optional(),
   alternateReadings: z.array(z.string()).optional(),
+  jlptLevel: z.enum(["N5", "N4", "N3", "N2", "N1"]).optional(),
+  kind: z.enum(["vocab", "grammar"]).optional(),
+  grammarExplanation: z.string().optional(),
 });
 
 const MasteryStateSchema = z.object({

@@ -11,6 +11,8 @@ const en = {
   appTagline: "Paste practice material in your target language, pick your languages, and start a lesson.",
   nativeLanguageLabel: "Native language (BCP-47, e.g. en, zh-TW):",
   targetLanguageLabel: "Target language (BCP-47, e.g. ja, es):",
+  jlptLevelLabel: "JLPT level:",
+  jlptLevelAll: "All levels",
   loadTextFileLabel: "Load a text file:",
   loadedFile: 'Loaded "{{fileName}}".',
   textareaPlaceholder:
@@ -40,6 +42,7 @@ const en = {
   continueLabel: "Continue",
   generateConversation: "Generate a conversation",
   generatingConversation: "Generating conversation...",
+  grammarPatternLabel: "Grammar pattern:",
 };
 
 const zhTW: typeof en = {
@@ -48,6 +51,8 @@ const zhTW: typeof en = {
   appTagline: "貼上目標語言的練習文本，選擇你的語言，然後開始上課。",
   nativeLanguageLabel: "母語（BCP-47，例如 en、zh-TW）：",
   targetLanguageLabel: "目標語言（BCP-47，例如 ja、es）：",
+  jlptLevelLabel: "日檢（JLPT）級數：",
+  jlptLevelAll: "所有級數",
   loadTextFileLabel: "載入文字檔：",
   loadedFile: "已載入「{{fileName}}」。",
   textareaPlaceholder: "貼上目標語言的文章、對話或單字表，或在上方載入文字檔...",
@@ -75,6 +80,7 @@ const zhTW: typeof en = {
   continueLabel: "繼續",
   generateConversation: "產生對話",
   generatingConversation: "對話產生中...",
+  grammarPatternLabel: "文法句型：",
 };
 
 export const STRINGS: Record<UiLanguage, typeof en> = { en, "zh-TW": zhTW };
