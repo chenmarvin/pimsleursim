@@ -8,8 +8,14 @@ import { config } from "./config.js";
 import { conversationRouter } from "./routes/conversation.js";
 import { extractRouter } from "./routes/extract.js";
 import { grammarRouter } from "./routes/grammar.js";
+import { kanjiRouter } from "./routes/kanji.js";
 import { lessonRouter } from "./routes/lesson.js";
+import { listeningRouter } from "./routes/listening.js";
+import { quizRouter } from "./routes/quiz.js";
+import { readingRouter } from "./routes/reading.js";
+import { shadowingRouter } from "./routes/shadowing.js";
 import { ttsRouter } from "./routes/tts.js";
+import { writingRouter } from "./routes/writing.js";
 
 const app = express();
 
@@ -21,6 +27,12 @@ app.use("/api/lesson", lessonRouter);
 app.use("/api/tts", ttsRouter);
 app.use("/api/conversation", conversationRouter);
 app.use("/api/grammar", grammarRouter);
+app.use("/api/kanji", kanjiRouter);
+app.use("/api/listening", listeningRouter);
+app.use("/api/reading", readingRouter);
+app.use("/api/quiz", quizRouter);
+app.use("/api/shadowing", shadowingRouter);
+app.use("/api/writing", writingRouter);
 
 app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });

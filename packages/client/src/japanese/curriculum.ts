@@ -16,7 +16,7 @@ export const JLPT_PHASE_TARGETS: Record<JlptPhase, JlptPhaseTarget> = {
   N1: { vocab: 10000, kanji: 2000, grammar: 700 },
 };
 
-export type DailyModuleKey = "vocabReview" | "vocabNew" | "grammar" | "reading" | "listening";
+export type DailyModuleKey = "vocabReview" | "vocabNew" | "grammar" | "kanji" | "reading" | "listening";
 
 export interface DailyModuleAllocation {
   module: DailyModuleKey;
@@ -33,9 +33,10 @@ export const DAILY_SCHEDULE_TEMPLATES: DailyScheduleTemplate[] = [
     totalMinutes: 90,
     allocations: [
       { module: "vocabReview", minutes: 15 },
-      { module: "vocabNew", minutes: 20 },
-      { module: "grammar", minutes: 20 },
-      { module: "reading", minutes: 20 },
+      { module: "vocabNew", minutes: 15 },
+      { module: "grammar", minutes: 15 },
+      { module: "kanji", minutes: 15 },
+      { module: "reading", minutes: 15 },
       { module: "listening", minutes: 15 },
     ],
   },
@@ -51,4 +52,11 @@ export const DAILY_SCHEDULE_TEMPLATES: DailyScheduleTemplate[] = [
 // Modules with a working screen behind them. Everything else in
 // DailyModuleKey renders as a "coming soon" row on the dashboard until a
 // later session builds it out.
-export const BUILT_MODULES: ReadonlySet<DailyModuleKey> = new Set(["vocabReview", "vocabNew", "grammar"]);
+export const BUILT_MODULES: ReadonlySet<DailyModuleKey> = new Set([
+  "vocabReview",
+  "vocabNew",
+  "grammar",
+  "kanji",
+  "listening",
+  "reading",
+]);

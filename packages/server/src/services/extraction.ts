@@ -15,6 +15,25 @@ const BaseVocabItemSchema = z.object({
   targetPhrase: z.string().describe("A word or short phrase in the target language worth teaching"),
   sourcePhrase: z.string().describe("A natural, idiomatic translation into the learner's native language"),
   notes: z.string().optional().describe("Brief note, e.g. 'high-frequency greeting' or 'irregular verb form'"),
+  englishTranslation: z.string().describe(
+    "English translation of targetPhrase, kept as a fixed reference translation regardless of whether the learner's " +
+    "native language is already English."
+  ),
+  exampleSentence: z.string().describe("A short, natural example sentence in the target language that uses targetPhrase"),
+  exampleTranslation: z.string().describe("Natural, idiomatic translation of exampleSentence into the learner's native language"),
+  commonMistake: z.string().optional().describe(
+    "A common mistake learners (especially from the learner's native-language background) make with this word or phrase, " +
+    "in the learner's native language. Omit entirely if there isn't a notable one."
+  ),
+  memoryTip: z.string().optional().describe(
+    "A short mnemonic or memory aid to help remember this word or phrase, in the learner's native language. Omit " +
+    "entirely if there isn't a good one."
+  ),
+  chineseDifference: z.string().optional().describe(
+    "Only for learners whose native language uses Chinese characters: if targetPhrase is a 'false friend' — shares " +
+    "characters with a Chinese word/phrase but differs meaningfully in meaning or usage — explain the difference here, " +
+    "in the learner's native language. Omit entirely if there's no meaningful difference worth flagging."
+  ),
 });
 
 const FuriganaSegmentSchema = z.object({
@@ -45,12 +64,14 @@ const JapaneseVocabItemSchema = BaseVocabItemSchema.extend({
     "alternateReadings ['なな']; '四' has kanaReading 'よん' and alternateReadings ['し']; '二十歳' has kanaReading 'はたち' with no alternates."
   ),
   furigana: z.array(FuriganaSegmentSchema).describe(FURIGANA_INSTRUCTION("targetPhrase")),
+  exampleFurigana: z.array(FuriganaSegmentSchema).describe(FURIGANA_INSTRUCTION("exampleSentence")),
 });
 
 const VocabItemSchema = BaseVocabItemSchema.extend({
   kanaReading: z.string().optional(),
   alternateReadings: z.array(z.string()).optional(),
   furigana: z.array(FuriganaSegmentSchema).optional(),
+  exampleFurigana: z.array(FuriganaSegmentSchema).optional(),
 });
 
 // Defensive check on LLM output: only trust furigana segments if they
@@ -88,7 +109,8 @@ function buildPrompt(opts: {
   const kanaInstruction = isJapanese
     ? "\n- For EVERY Japanese item you MUST provide kanaReading: the complete hiragana reading (convert kanji AND katakana to hiragana). Examples: '食べる'→'たべる', '今日'→'きょう', 'アイスクリーム'→'あいすくりいむ', 'コーヒー'→'こおひい'. Omitting kanaReading will break the app." +
       "\n- If the item has another hiragana reading that Japanese speakers also commonly use interchangeably (e.g. numbers like 七/しち which is equally often read なな, or 四/よん which is equally often read し), list it in alternateReadings so either answer is accepted. Leave alternateReadings empty for the (much more common) case where there's only one natural reading." +
-      "\n- For EVERY Japanese item you MUST also provide furigana: targetPhrase split into segments so the app can show hiragana above each kanji run. See the furigana field description for the exact format."
+      "\n- For EVERY Japanese item you MUST also provide furigana: targetPhrase split into segments so the app can show hiragana above each kanji run. See the furigana field description for the exact format." +
+      "\n- For EVERY Japanese item you MUST also provide exampleFurigana: exampleSentence split into segments the same way. See the exampleFurigana field description for the exact format."
     : "";
 
   return `You are a language-teaching content designer following the Pimsleur method.
@@ -100,7 +122,9 @@ Extract up to ${opts.maxItems} teachable vocabulary items and short phrases, sui
 - Prioritize high-frequency, broadly useful vocabulary over rare or text-specific terms.
 - Skip proper nouns unless they are common vocabulary words.
 - Deduplicate near-identical items (different inflections of the same core phrase).
-- For each item, provide a natural idiomatic translation, not a literal word-for-word gloss. If the source text already gives a translation/reading, use it as the basis but clean it up into a clear, natural phrase pair.${kanaInstruction}
+- For each item, provide a natural idiomatic translation, not a literal word-for-word gloss. If the source text already gives a translation/reading, use it as the basis but clean it up into a clear, natural phrase pair.
+- For each item, also provide: englishTranslation (an English gloss, even if the learner's native language is already English or is something else entirely); one short exampleSentence in the target language using the item, with its exampleTranslation into the learner's native language; and, only when genuinely useful, a commonMistake and/or memoryTip in the learner's native language. Leave commonMistake/memoryTip out entirely when there isn't a notable one — don't force one for every item.
+- If the learner's native language uses Chinese characters (e.g. Traditional Chinese) and targetPhrase is a "false friend" relative to a Chinese word/phrase that shares characters with it — same or similar appearance but a meaningfully different meaning or usage — explain the difference in chineseDifference, in the learner's native language. Omit chineseDifference entirely when there's no meaningful difference worth flagging (most items have none).${kanaInstruction}
 
 Text:
 """
@@ -153,6 +177,13 @@ export async function extractVocabulary(opts: {
     kanaReading: item.kanaReading,
     alternateReadings: item.alternateReadings,
     furigana: validFurigana(item.furigana, item.targetPhrase),
+    englishTranslation: item.englishTranslation,
+    exampleSentence: item.exampleSentence,
+    exampleTranslation: item.exampleTranslation,
+    exampleFurigana: validFurigana(item.exampleFurigana, item.exampleSentence),
+    commonMistake: item.commonMistake,
+    memoryTip: item.memoryTip,
+    chineseDifference: item.chineseDifference,
   }));
 
   return { items, truncated, processedCharCount: rawText.length, totalCharCount };

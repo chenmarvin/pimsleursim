@@ -195,26 +195,61 @@ export function LessonPlayerScreen({
     <div>
       <p>{t("stepProgress", { current: index + 1, total: queue.length })}</p>
       {currentStep.type === "introduce" && (
-        <p>
-          {t("introducingLabel")} <Furigana text={currentStep.targetPhrase} segments={currentStep.furigana} />
-          {alternateReadingsDisplay(currentStep) && (
-            <span>
-              {" "}
-              ({t("alsoAccepted")} {alternateReadingsDisplay(currentStep)})
-            </span>
-          )}{" "}
-          <button
-            onClick={() =>
-              handleRepeat(
-                { text: currentStep.targetPhrase, languageCode: targetLanguage },
-                { text: currentStep.sourcePhrase, languageCode: sourceLanguage },
-              )
-            }
-            disabled={isRepeating}
-          >
-            {t("repeat")}
-          </button>
-        </p>
+        <div>
+          <p>
+            {t("introducingLabel")} <Furigana text={currentStep.targetPhrase} segments={currentStep.furigana} />
+            {alternateReadingsDisplay(currentStep) && (
+              <span>
+                {" "}
+                ({t("alsoAccepted")} {alternateReadingsDisplay(currentStep)})
+              </span>
+            )}{" "}
+            <button
+              onClick={() =>
+                handleRepeat(
+                  { text: currentStep.targetPhrase, languageCode: targetLanguage },
+                  { text: currentStep.sourcePhrase, languageCode: sourceLanguage },
+                )
+              }
+              disabled={isRepeating}
+            >
+              {t("repeat")}
+            </button>
+          </p>
+          {currentStep.englishTranslation && (
+            <p>
+              <strong>{t("vocabEnglishLabel")}</strong> {currentStep.englishTranslation}
+            </p>
+          )}
+          {currentStep.exampleSentence && (
+            <p>
+              <strong>{t("vocabExampleLabel")}</strong>{" "}
+              <Furigana text={currentStep.exampleSentence} segments={currentStep.exampleFurigana} />
+              {currentStep.exampleTranslation && <> ({currentStep.exampleTranslation})</>}{" "}
+              <button
+                onClick={() => handleRepeat({ text: currentStep.exampleSentence!, languageCode: targetLanguage })}
+                disabled={isRepeating}
+              >
+                {t("repeat")}
+              </button>
+            </p>
+          )}
+          {currentStep.commonMistake && (
+            <p>
+              <strong>{t("vocabCommonMistakeLabel")}</strong> {currentStep.commonMistake}
+            </p>
+          )}
+          {currentStep.memoryTip && (
+            <p>
+              <strong>{t("vocabMemoryTipLabel")}</strong> {currentStep.memoryTip}
+            </p>
+          )}
+          {currentStep.chineseDifference && (
+            <p>
+              <strong>{t("vocabChineseNoteLabel")}</strong> {currentStep.chineseDifference}
+            </p>
+          )}
+        </div>
       )}
       {currentStep.type === "anticipate" && phase === "awaiting-input" && (
         <div>

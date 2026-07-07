@@ -19,6 +19,13 @@ const VocabItemSchema = z.object({
   kanaReading: z.string().optional(),
   alternateReadings: z.array(z.string()).optional(),
   furigana: z.array(FuriganaSegmentSchema).optional(),
+  englishTranslation: z.string().optional(),
+  exampleSentence: z.string().optional(),
+  exampleTranslation: z.string().optional(),
+  exampleFurigana: z.array(FuriganaSegmentSchema).optional(),
+  commonMistake: z.string().optional(),
+  memoryTip: z.string().optional(),
+  chineseDifference: z.string().optional(),
 });
 
 const MasteryStateSchema = z.object({

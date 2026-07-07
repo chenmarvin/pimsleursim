@@ -5,10 +5,22 @@ import type {
   ExtractResponse,
   GrammarDrillRequest,
   GrammarDrillResponse,
+  KanjiDrillRequest,
+  KanjiDrillResponse,
   LessonPlanRequest,
   LessonPlanResponse,
+  ListeningDrillRequest,
+  ListeningDrillResponse,
+  QuizDrillRequest,
+  QuizDrillResponse,
+  ReadingDrillRequest,
+  ReadingDrillResponse,
+  ShadowingDrillRequest,
+  ShadowingDrillResponse,
   TTSRequest,
   TTSResponse,
+  WritingDrillRequest,
+  WritingDrillResponse,
 } from "@pimsleursim/shared";
 
 async function postJson<TResponse>(path: string, body: unknown): Promise<TResponse> {
@@ -42,4 +54,28 @@ export function generateConversation(req: ConversationRequest): Promise<Conversa
 
 export function fetchGrammarDrill(req: GrammarDrillRequest): Promise<GrammarDrillResponse> {
   return postJson<GrammarDrillResponse>("/api/grammar/next", req);
+}
+
+export function fetchKanjiDrill(req: KanjiDrillRequest): Promise<KanjiDrillResponse> {
+  return postJson<KanjiDrillResponse>("/api/kanji/next", req);
+}
+
+export function fetchListeningDrill(req: ListeningDrillRequest): Promise<ListeningDrillResponse> {
+  return postJson<ListeningDrillResponse>("/api/listening/next", req);
+}
+
+export function fetchReadingDrill(req: ReadingDrillRequest): Promise<ReadingDrillResponse> {
+  return postJson<ReadingDrillResponse>("/api/reading/next", req);
+}
+
+export function fetchQuiz(req: QuizDrillRequest): Promise<QuizDrillResponse> {
+  return postJson<QuizDrillResponse>("/api/quiz/next", req);
+}
+
+export function fetchShadowingSet(req: ShadowingDrillRequest): Promise<ShadowingDrillResponse> {
+  return postJson<ShadowingDrillResponse>("/api/shadowing/next", req);
+}
+
+export function fetchWritingSentences(req: WritingDrillRequest): Promise<WritingDrillResponse> {
+  return postJson<WritingDrillResponse>("/api/writing/next", req);
 }

@@ -173,6 +173,13 @@ export function buildLessonPlan(input: SchedulerInput): LessonPlan {
       kanaReading: item.kanaReading,
       alternateReadings: item.alternateReadings,
       furigana: item.furigana,
+      englishTranslation: item.englishTranslation,
+      exampleSentence: item.exampleSentence,
+      exampleTranslation: item.exampleTranslation,
+      exampleFurigana: item.exampleFurigana,
+      commonMistake: item.commonMistake,
+      memoryTip: item.memoryTip,
+      chineseDifference: item.chineseDifference,
     });
   };
 

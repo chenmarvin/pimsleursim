@@ -78,6 +78,13 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         kanaReading: item.kanaReading,
         alternateReadings: item.alternateReadings,
         furigana: item.furigana,
+        englishTranslation: item.englishTranslation,
+        exampleSentence: item.exampleSentence,
+        exampleTranslation: item.exampleTranslation,
+        exampleFurigana: item.exampleFurigana,
+        commonMistake: item.commonMistake,
+        memoryTip: item.memoryTip,
+        chineseDifference: item.chineseDifference,
       }));
 
       const existingDeck = loadDeck();

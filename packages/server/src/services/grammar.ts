@@ -54,7 +54,20 @@ function makeGrammarSchema(isJapanese: boolean) {
   return z.object({
     patternName: z.string().describe("Short name of the grammar pattern being taught, e.g. '〜てはいけない (must not)'"),
     explanation: z.string().describe("One or two sentences explaining the pattern, in the learner's native language"),
+    structure: z.string().describe(
+      "A concise notation of the grammar structure itself, e.g. 'A は B です' or 'Verb (て-form) + はいけない' — " +
+      "distinct from explanation, which describes what it means rather than how it's built."
+    ),
     sentences: z.array(isJapanese ? JapaneseSentenceSchema : SentenceSchema),
+    commonMistake: z.string().optional().describe(
+      "A common mistake learners (especially from the learner's native-language background) make with this pattern, " +
+      "in the learner's native language. Omit entirely if there isn't a notable one."
+    ),
+    chineseDifference: z.string().optional().describe(
+      "Only for learners whose native language uses Chinese characters: if this grammar pattern is a 'false friend' — " +
+      "resembles a Chinese grammatical construction or word but works meaningfully differently — explain the difference " +
+      "here, in the learner's native language. Omit entirely if there's no meaningful difference worth flagging."
+    ),
   });
 }
 
@@ -94,11 +107,14 @@ ${difficultyLine}
 ${coveredLine}
 
 Requirements:
-- Write a short (1-2 sentence) explanation of the pattern, in the learner's native language (${opts.sourceLanguageName}).
+- Write a short (1-2 sentence) explanation of the pattern's MEANING, in the learner's native language (${opts.sourceLanguageName}).
+- Write a concise STRUCTURE notation showing how the pattern is built (e.g. 'A は B です' or 'Verb (ない-form) + でください') — distinct from the meaning explanation.
 - Provide exactly ${SENTENCES_PER_POINT} example sentences drilling the pattern, each with a short label and a natural idiomatic translation.
 - If the pattern is a conjugable adjective, copula, or verb form, make the 4 sentences the same base sentence transformed across affirmative/negative x present/past (in that order: affirmative-present, negative-present, affirmative-past, negative-past) — e.g. "Today is hot" -> "Today is not hot" -> "Yesterday was hot" -> "Yesterday was not hot".
 - Otherwise (e.g. particles, comparisons, conditionals, and other patterns that don't naturally conjugate that way), provide 4 varied natural example sentences that each clearly demonstrate the pattern in a different realistic context.
-- Keep sentences short and conversational, at the target difficulty level.${furiganaInstruction}`;
+- Keep sentences short and conversational, at the target difficulty level.
+- Only when genuinely useful, give a commonMistake — a mistake learners from the learner's native-language background commonly make with this pattern, in the learner's native language. Leave it out entirely when there isn't a notable one; don't force one.
+- If the learner's native language uses Chinese characters (e.g. Traditional Chinese) and this pattern is a "false friend" relative to Chinese grammar/usage, explain the difference in chineseDifference, in the learner's native language. Omit chineseDifference entirely when there's no meaningful difference worth flagging (most patterns have none).${furiganaInstruction}`;
 }
 
 export async function generateGrammarDrill(opts: {
@@ -131,7 +147,7 @@ export async function generateGrammarDrill(opts: {
     throw new Error("Grammar drill generation returned unparseable output");
   }
 
-  const { patternName, explanation, sentences } = response.parsed_output;
+  const { patternName, explanation, structure, sentences, commonMistake, chineseDifference } = response.parsed_output;
   if (sentences.length < SENTENCES_PER_POINT) {
     throw new Error(`Grammar drill generation returned only ${sentences.length} sentences, expected ${SENTENCES_PER_POINT}`);
   }
@@ -139,6 +155,9 @@ export async function generateGrammarDrill(opts: {
   return {
     patternName,
     explanation,
+    structure,
+    commonMistake,
+    chineseDifference,
     sentences: sentences.slice(0, SENTENCES_PER_POINT).map((sentence) => ({
       ...sentence,
       furigana: validFurigana(sentence.furigana, sentence.targetText),

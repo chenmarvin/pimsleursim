@@ -1,8 +1,11 @@
 import { useMemo, useState } from "react";
 import type { LessonReadyPayload } from "./UploadConfigScreen.js";
 import type { GrammarDrillPayload } from "./GrammarDrillScreen.js";
+import type { KanjiDrillPayload } from "./KanjiDrillScreen.js";
+import type { ListeningDrillPayload } from "./ListeningScreen.js";
+import type { ReadingDrillPayload } from "./ReadingScreen.js";
 import { DEFAULT_SCHEDULER_CONFIG, selectDueReviewItems } from "@pimsleursim/shared";
-import { fetchGrammarDrill, fetchNextLesson } from "../api/client.js";
+import { fetchGrammarDrill, fetchKanjiDrill, fetchListeningDrill, fetchNextLesson, fetchReadingDrill } from "../api/client.js";
 import {
   BUILT_MODULES,
   DAILY_SCHEDULE_TEMPLATES,
@@ -15,6 +18,8 @@ import { useUiLanguage } from "../i18n/useUiLanguage.js";
 import type { StringKey } from "../i18n/strings.js";
 import { loadGrammarProgress } from "../storage/grammarProgressStore.js";
 import { loadJapaneseMode, saveJapaneseMode } from "../storage/japaneseModeStore.js";
+import { loadKanaProgress } from "../storage/kanaProgressStore.js";
+import { loadKanjiProgress } from "../storage/kanjiProgressStore.js";
 import { loadDeck } from "../storage/masteryStore.js";
 
 const JAPANESE_TARGET_LANGUAGE = "ja";
@@ -22,6 +27,7 @@ const DEFAULT_SOURCE_LANGUAGE = "zh-TW";
 
 const NON_VOCAB_LABEL_KEYS: Partial<Record<DailyModuleKey, StringKey>> = {
   grammar: "moduleGrammar",
+  kanji: "moduleKanji",
   reading: "moduleReading",
   listening: "moduleListening",
 };
@@ -32,6 +38,9 @@ interface DashboardRow {
   minutes: number;
   isVocab: boolean;
   isGrammar: boolean;
+  isKanji: boolean;
+  isListening: boolean;
+  isReading: boolean;
   isBuilt: boolean;
 }
 
@@ -49,11 +58,24 @@ function buildRows(allocations: { module: DailyModuleKey; minutes: number }[]): 
       minutes,
       isVocab: false,
       isGrammar: module === "grammar",
+      isKanji: module === "kanji",
+      isListening: module === "listening",
+      isReading: module === "reading",
       isBuilt: BUILT_MODULES.has(module),
     });
   }
   if (vocabMinutes > 0) {
-    rows.unshift({ key: "vocab", labelKey: "moduleVocab", minutes: vocabMinutes, isVocab: true, isGrammar: false, isBuilt: true });
+    rows.unshift({
+      key: "vocab",
+      labelKey: "moduleVocab",
+      minutes: vocabMinutes,
+      isVocab: true,
+      isGrammar: false,
+      isKanji: false,
+      isListening: false,
+      isReading: false,
+      isBuilt: true,
+    });
   }
   return rows;
 }
@@ -61,6 +83,11 @@ function buildRows(allocations: { module: DailyModuleKey; minutes: number }[]): 
 interface Props {
   onStartPractice: (payload: LessonReadyPayload) => void;
   onStartGrammar: (payload: GrammarDrillPayload) => void;
+  onStartKanji: (payload: KanjiDrillPayload) => void;
+  onStartKana: () => void;
+  onStartListening: (payload: ListeningDrillPayload) => void;
+  onStartReading: (payload: ReadingDrillPayload) => void;
+  onStartSession: () => void;
   onGoToUpload: () => void;
 }
 
@@ -78,12 +105,24 @@ function mostCommonSourceLanguage(items: { sourceLanguage: string }[]): string {
   return best ?? DEFAULT_SOURCE_LANGUAGE;
 }
 
-export function DashboardScreen({ onStartPractice, onStartGrammar, onGoToUpload }: Props) {
+export function DashboardScreen({
+  onStartPractice,
+  onStartGrammar,
+  onStartKanji,
+  onStartKana,
+  onStartListening,
+  onStartReading,
+  onStartSession,
+  onGoToUpload,
+}: Props) {
   const { t } = useUiLanguage();
   const [japaneseMode, setJapaneseMode] = useState(loadJapaneseMode);
   const [selectedMinutes, setSelectedMinutes] = useState(DAILY_SCHEDULE_TEMPLATES[0].totalMinutes);
   const [loading, setLoading] = useState(false);
   const [grammarLoading, setGrammarLoading] = useState(false);
+  const [kanjiLoading, setKanjiLoading] = useState(false);
+  const [listeningLoading, setListeningLoading] = useState(false);
+  const [readingLoading, setReadingLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const deck = useMemo(() => loadDeck(), []);
@@ -96,6 +135,8 @@ export function DashboardScreen({ onStartPractice, onStartGrammar, onGoToUpload 
     [deck.masteryMap],
   );
   const grammarProgress = useMemo(() => loadGrammarProgress(), []);
+  const kanjiProgress = useMemo(() => loadKanjiProgress(), []);
+  const kanaProgress = useMemo(() => loadKanaProgress(), []);
 
   const template =
     DAILY_SCHEDULE_TEMPLATES.find((tpl) => tpl.totalMinutes === selectedMinutes) ?? DAILY_SCHEDULE_TEMPLATES[0];
@@ -158,9 +199,68 @@ export function DashboardScreen({ onStartPractice, onStartGrammar, onGoToUpload 
     }
   }
 
+  async function handleStartKanji() {
+    setKanjiLoading(true);
+    setError(null);
+    try {
+      const sourceLanguage = mostCommonSourceLanguage(japaneseItems);
+      const { entry } = await fetchKanjiDrill({
+        sourceLanguage,
+        targetLanguage: JAPANESE_TARGET_LANGUAGE,
+        difficultyHint: `JLPT ${japaneseMode.currentPhase}`,
+        coveredKanji: loadKanjiProgress().coveredKanji,
+      });
+      onStartKanji({ entry, sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errorGeneric"));
+    } finally {
+      setKanjiLoading(false);
+    }
+  }
+
+  async function handleStartListening() {
+    setListeningLoading(true);
+    setError(null);
+    try {
+      const sourceLanguage = mostCommonSourceLanguage(japaneseItems);
+      const { script } = await fetchListeningDrill({
+        sourceLanguage,
+        targetLanguage: JAPANESE_TARGET_LANGUAGE,
+        difficultyHint: `JLPT ${japaneseMode.currentPhase}`,
+      });
+      onStartListening({ script, sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errorGeneric"));
+    } finally {
+      setListeningLoading(false);
+    }
+  }
+
+  async function handleStartReading() {
+    setReadingLoading(true);
+    setError(null);
+    try {
+      const sourceLanguage = mostCommonSourceLanguage(japaneseItems);
+      const { passage } = await fetchReadingDrill({
+        sourceLanguage,
+        targetLanguage: JAPANESE_TARGET_LANGUAGE,
+        difficultyHint: `JLPT ${japaneseMode.currentPhase}`,
+      });
+      onStartReading({ passage, sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errorGeneric"));
+    } finally {
+      setReadingLoading(false);
+    }
+  }
+
   return (
     <div>
       <h1>{t("dashboardTitle")}</h1>
+
+      <p>
+        <button onClick={onStartSession}>{t("startFullSession")}</button>
+      </p>
 
       <section>
         <p>{t("currentPhase", { phase: japaneseMode.currentPhase })}</p>
@@ -173,6 +273,11 @@ export function DashboardScreen({ onStartPractice, onStartGrammar, onGoToUpload 
           })}
         </p>
         {nextPhase && <button onClick={handleAdvancePhase}>{t("advanceToPhase", { phase: nextPhase })}</button>}
+        {!kanaProgress.completed && (
+          <p>
+            {t("kanaGatePrompt")} <button onClick={onStartKana}>{t("startKana")}</button>
+          </p>
+        )}
         <div>
           <label>
             {t("changePhaseLabel")}{" "}
@@ -203,6 +308,7 @@ export function DashboardScreen({ onStartPractice, onStartGrammar, onGoToUpload 
       <section>
         <p>{t("catalogStatus", { count: japaneseItems.length, due: dueCount })}</p>
         <p>{t("grammarProgressLine", { count: grammarProgress.coveredPatterns.length, target: targets.grammar })}</p>
+        <p>{t("kanjiProgressLine", { count: kanjiProgress.coveredKanji.length, target: targets.kanji })}</p>
         <ul>
           {buildRows(template.allocations).map((row) => (
             <li key={row.key}>
@@ -214,6 +320,22 @@ export function DashboardScreen({ onStartPractice, onStartGrammar, onGoToUpload 
               ) : row.isGrammar ? (
                 <button onClick={handleStartGrammar} disabled={grammarLoading}>
                   {grammarLoading ? t("grammarLoading") : t("startPractice")}
+                </button>
+              ) : row.isKanji ? (
+                kanaProgress.completed ? (
+                  <button onClick={handleStartKanji} disabled={kanjiLoading}>
+                    {kanjiLoading ? t("kanjiLoading") : t("startPractice")}
+                  </button>
+                ) : (
+                  <span>({t("kanaRequiredHint")})</span>
+                )
+              ) : row.isListening ? (
+                <button onClick={handleStartListening} disabled={listeningLoading}>
+                  {listeningLoading ? t("listeningLoading") : t("startPractice")}
+                </button>
+              ) : row.isReading ? (
+                <button onClick={handleStartReading} disabled={readingLoading}>
+                  {readingLoading ? t("readingLoading") : t("startPractice")}
                 </button>
               ) : (
                 !row.isBuilt && <span>({t("comingSoon")})</span>

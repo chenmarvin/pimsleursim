@@ -19,9 +19,10 @@ export interface GrammarDrillPayload {
 
 interface Props extends GrammarDrillPayload {
   onFinish: () => void;
+  finishLabel?: string;
 }
 
-export function GrammarDrillScreen({ point, sourceLanguage, targetLanguage, onFinish }: Props) {
+export function GrammarDrillScreen({ point, sourceLanguage, targetLanguage, onFinish, finishLabel }: Props) {
   const { t } = useUiLanguage();
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("playing");
@@ -105,7 +106,7 @@ export function GrammarDrillScreen({ point, sourceLanguage, targetLanguage, onFi
     return (
       <div>
         <h2>{t("grammarPatternCovered", { pattern: point.patternName })}</h2>
-        <button onClick={onFinish}>{t("backToDashboard")}</button>
+        <button onClick={onFinish}>{finishLabel ?? t("backToDashboard")}</button>
       </div>
     );
   }
@@ -114,6 +115,19 @@ export function GrammarDrillScreen({ point, sourceLanguage, targetLanguage, onFi
     <div>
       <h2>{point.patternName}</h2>
       <p>{point.explanation}</p>
+      <p>
+        <strong>{t("grammarStructureLabel")}</strong> {point.structure}
+      </p>
+      {point.commonMistake && (
+        <p>
+          <strong>{t("grammarCommonMistakeLabel")}</strong> {point.commonMistake}
+        </p>
+      )}
+      {point.chineseDifference && (
+        <p>
+          <strong>{t("grammarChineseNoteLabel")}</strong> {point.chineseDifference}
+        </p>
+      )}
       <p>{t("grammarStepProgress", { current: index + 1, total: point.sentences.length })}</p>
       {index === 0 && (
         <p>
