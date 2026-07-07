@@ -3,6 +3,7 @@ import type { ConversationLine, VocabItem } from "@pimsleursim/shared";
 import { generateConversation } from "../api/client.js";
 import { speakText } from "../audio/audioPlayer.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
+import { Furigana } from "./Furigana.js";
 
 interface Props {
   /** Read lazily (only when the learner asks for a conversation) so the catalog reflects the latest merge. */
@@ -55,7 +56,7 @@ export function ConversationView({ getVocab, sourceLanguage, targetLanguage }: P
         <div>
           {lines.map((line, i) => (
             <p key={i}>
-              <strong>{line.speaker}:</strong> {line.targetText}{" "}
+              <strong>{line.speaker}:</strong> <Furigana text={line.targetText} segments={line.furigana} />{" "}
               <button onClick={() => handleRepeatLine(line.targetText)} disabled={isRepeating}>
                 {t("repeat")}
               </button>

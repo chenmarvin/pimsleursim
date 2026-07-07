@@ -77,6 +77,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         notes: item.notes,
         kanaReading: item.kanaReading,
         alternateReadings: item.alternateReadings,
+        furigana: item.furigana,
       }));
 
       const existingDeck = loadDeck();

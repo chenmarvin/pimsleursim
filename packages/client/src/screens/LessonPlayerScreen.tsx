@@ -3,6 +3,7 @@ import type { LessonStep, MasteryMap } from "@pimsleursim/shared";
 import { applyStepResult, computeInLessonRetestOffset, initMasteryState } from "@pimsleursim/shared";
 import { speakText as speak } from "../audio/audioPlayer.js";
 import { ConversationView } from "../components/ConversationView.js";
+import { Furigana } from "../components/Furigana.js";
 import type { ResponseEvaluator } from "../evaluation/ResponseEvaluator.js";
 import { FuzzyTextEvaluator } from "../evaluation/fuzzyTextEvaluator.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
@@ -27,9 +28,12 @@ interface SessionStats {
   correct: number;
 }
 
-function readingDisplay(step: LessonStep): string | null {
-  if (!step.kanaReading || step.kanaReading === step.targetPhrase) return null;
-  return [step.kanaReading, ...(step.alternateReadings ?? [])].join("／");
+// Alternate readings (e.g. 七 also read なな) are shown alongside the
+// furigana-annotated phrase — the primary reading is already visible inline
+// as furigana, so only the extras need calling out separately.
+function alternateReadingsDisplay(step: LessonStep): string | null {
+  if (!step.alternateReadings || step.alternateReadings.length === 0) return null;
+  return step.alternateReadings.join("／");
 }
 
 export function LessonPlayerScreen({
@@ -135,6 +139,7 @@ export function LessonPlayerScreen({
         sourcePhrase: currentStep.sourcePhrase,
         kanaReading: currentStep.kanaReading,
         alternateReadings: currentStep.alternateReadings,
+        furigana: currentStep.furigana,
       };
       setQueue((q) => {
         const next = [...q];
@@ -191,8 +196,13 @@ export function LessonPlayerScreen({
       <p>{t("stepProgress", { current: index + 1, total: queue.length })}</p>
       {currentStep.type === "introduce" && (
         <p>
-          {t("introducing", { phrase: currentStep.targetPhrase })}
-          {readingDisplay(currentStep) && <span> ({readingDisplay(currentStep)})</span>}{" "}
+          {t("introducingLabel")} <Furigana text={currentStep.targetPhrase} segments={currentStep.furigana} />
+          {alternateReadingsDisplay(currentStep) && (
+            <span>
+              {" "}
+              ({t("alsoAccepted")} {alternateReadingsDisplay(currentStep)})
+            </span>
+          )}{" "}
           <button
             onClick={() =>
               handleRepeat(
@@ -233,8 +243,16 @@ export function LessonPlayerScreen({
         <div>
           <p>{feedback.correct ? t("correct") : t("notQuite")}</p>
           <p>
-            {t("correctAnswer")} <strong>{currentStep.targetPhrase}</strong>
-            {readingDisplay(currentStep) && <span> ({readingDisplay(currentStep)})</span>}{" "}
+            {t("correctAnswer")}{" "}
+            <strong>
+              <Furigana text={currentStep.targetPhrase} segments={currentStep.furigana} />
+            </strong>
+            {alternateReadingsDisplay(currentStep) && (
+              <span>
+                {" "}
+                ({t("alsoAccepted")} {alternateReadingsDisplay(currentStep)})
+              </span>
+            )}{" "}
             <button
               onClick={() => handleRepeat({ text: currentStep.targetPhrase, languageCode: targetLanguage })}
               disabled={isRepeating}

@@ -17,6 +17,20 @@ const BaseVocabItemSchema = z.object({
   notes: z.string().optional().describe("Brief note, e.g. 'high-frequency greeting' or 'irregular verb form'"),
 });
 
+const FuriganaSegmentSchema = z.object({
+  text: z.string().describe("Exact substring of the annotated text this segment covers"),
+  reading: z.string().optional().describe(
+    "Hiragana reading of this segment. Include ONLY if text contains kanji; omit for kana/punctuation/romaji segments."
+  ),
+});
+
+const FURIGANA_INSTRUCTION = (fieldName: string) =>
+  `REQUIRED: split ${fieldName} into segments for furigana display. Concatenating every segment's text, in order, ` +
+  "MUST reconstruct it EXACTLY (same characters, same order, no gaps or overlaps). Give each contiguous run of kanji " +
+  "its own segment with its hiragana reading; keep kana/punctuation/other characters as separate segment(s) with no " +
+  "reading. Example: '今日は天気がいいですね' → " +
+  '[{"text":"今日","reading":"きょう"},{"text":"は"},{"text":"天気","reading":"てんき"},{"text":"が"},{"text":"いいですね"}].';
+
 // For Japanese, kanaReading is REQUIRED (not optional) so that the structured
 // output always forces Claude to supply it. Without it the evaluator cannot
 // map kanji → hiragana and hiragana answers to kanji words are rejected.
@@ -30,12 +44,25 @@ const JapaneseVocabItemSchema = BaseVocabItemSchema.extend({
     "besides kanaReading. Most items have none — only list real alternates. Examples: '七' has kanaReading 'しち' and " +
     "alternateReadings ['なな']; '四' has kanaReading 'よん' and alternateReadings ['し']; '二十歳' has kanaReading 'はたち' with no alternates."
   ),
+  furigana: z.array(FuriganaSegmentSchema).describe(FURIGANA_INSTRUCTION("targetPhrase")),
 });
 
 const VocabItemSchema = BaseVocabItemSchema.extend({
   kanaReading: z.string().optional(),
   alternateReadings: z.array(z.string()).optional(),
+  furigana: z.array(FuriganaSegmentSchema).optional(),
 });
+
+// Defensive check on LLM output: only trust furigana segments if they
+// reconstruct the annotated text exactly, so a slip never garbles the
+// rendered sentence — the client falls back to plain text when absent.
+function validFurigana(
+  segments: { text: string; reading?: string }[] | undefined,
+  text: string,
+): { text: string; reading?: string }[] | undefined {
+  if (!segments || segments.map((s) => s.text).join("") !== text) return undefined;
+  return segments;
+}
 
 function makeExtractionSchema(isJapanese: boolean) {
   const itemSchema = isJapanese ? JapaneseVocabItemSchema : VocabItemSchema;
@@ -60,7 +87,8 @@ function buildPrompt(opts: {
   const isJapanese = opts.targetLanguageCode.startsWith("ja");
   const kanaInstruction = isJapanese
     ? "\n- For EVERY Japanese item you MUST provide kanaReading: the complete hiragana reading (convert kanji AND katakana to hiragana). Examples: '食べる'→'たべる', '今日'→'きょう', 'アイスクリーム'→'あいすくりいむ', 'コーヒー'→'こおひい'. Omitting kanaReading will break the app." +
-      "\n- If the item has another hiragana reading that Japanese speakers also commonly use interchangeably (e.g. numbers like 七/しち which is equally often read なな, or 四/よん which is equally often read し), list it in alternateReadings so either answer is accepted. Leave alternateReadings empty for the (much more common) case where there's only one natural reading."
+      "\n- If the item has another hiragana reading that Japanese speakers also commonly use interchangeably (e.g. numbers like 七/しち which is equally often read なな, or 四/よん which is equally often read し), list it in alternateReadings so either answer is accepted. Leave alternateReadings empty for the (much more common) case where there's only one natural reading." +
+      "\n- For EVERY Japanese item you MUST also provide furigana: targetPhrase split into segments so the app can show hiragana above each kanji run. See the furigana field description for the exact format."
     : "";
 
   return `You are a language-teaching content designer following the Pimsleur method.
@@ -124,6 +152,7 @@ export async function extractVocabulary(opts: {
     notes: item.notes,
     kanaReading: item.kanaReading,
     alternateReadings: item.alternateReadings,
+    furigana: validFurigana(item.furigana, item.targetPhrase),
   }));
 
   return { items, truncated, processedCharCount: rawText.length, totalCharCount };

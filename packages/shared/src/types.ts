@@ -1,5 +1,13 @@
 export type ItemId = string;
 
+// One contiguous run of a target-language string, for furigana display.
+// Concatenating every segment's `text`, in order, reconstructs the original
+// string exactly. `reading` is present only for segments that contain kanji.
+export interface FuriganaSegment {
+  text: string;
+  reading?: string;
+}
+
 export interface VocabItem {
   id: ItemId;
   sourceLanguage: string; // BCP-47, e.g. "zh-TW"
@@ -9,6 +17,7 @@ export interface VocabItem {
   notes?: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
   alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
+  furigana?: FuriganaSegment[]; // segmented targetPhrase, for inline furigana display
 }
 
 export type ItemLifecycleStage = "new" | "in_lesson" | "graduated" | "mastered";
@@ -38,6 +47,7 @@ export interface LessonStep {
   sourcePhrase: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
   alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
+  furigana?: FuriganaSegment[]; // segmented targetPhrase, for inline furigana display
 }
 
 export interface SchedulerConfig {
@@ -68,6 +78,7 @@ export interface ExtractedItem {
   notes?: string;
   kanaReading?: string; // hiragana reading, populated for Japanese vocab
   alternateReadings?: string[]; // other commonly-accepted hiragana readings, e.g. 七 -> ["なな"] alongside kanaReading "しち"
+  furigana?: FuriganaSegment[]; // segmented targetPhrase, for inline furigana display
 }
 
 export interface ExtractResponse {
@@ -92,6 +103,7 @@ export interface ConversationLine {
   speaker: string; // e.g. "A" / "B" — not a specific character name
   targetText: string;
   sourceText: string; // idiomatic translation of targetText
+  furigana?: FuriganaSegment[]; // segmented targetText, for inline furigana display
 }
 
 export interface ConversationRequest {
@@ -108,6 +120,7 @@ export interface GrammarSentence {
   label: string; // e.g. "Affirmative, present"
   targetText: string;
   sourceText: string;
+  furigana?: FuriganaSegment[]; // segmented targetText, for inline furigana display
 }
 
 export interface GrammarPoint {

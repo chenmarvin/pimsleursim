@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { GrammarPoint } from "@pimsleursim/shared";
 import { speakText as speak } from "../audio/audioPlayer.js";
+import { Furigana } from "../components/Furigana.js";
 import { FuzzyTextEvaluator } from "../evaluation/fuzzyTextEvaluator.js";
 import type { ResponseEvaluator } from "../evaluation/ResponseEvaluator.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
@@ -116,7 +117,10 @@ export function GrammarDrillScreen({ point, sourceLanguage, targetLanguage, onFi
       <p>{t("grammarStepProgress", { current: index + 1, total: point.sentences.length })}</p>
       {index === 0 && (
         <p>
-          <strong>{currentSentence.targetText}</strong> ({currentSentence.sourceText}){" "}
+          <strong>
+            <Furigana text={currentSentence.targetText} segments={currentSentence.furigana} />
+          </strong>{" "}
+          ({currentSentence.sourceText}){" "}
           <button
             onClick={() =>
               handleRepeat(
@@ -157,7 +161,10 @@ export function GrammarDrillScreen({ point, sourceLanguage, targetLanguage, onFi
         <div>
           <p>{feedback.correct ? t("correct") : t("notQuite")}</p>
           <p>
-            {t("correctAnswer")} <strong>{currentSentence.targetText}</strong>{" "}
+            {t("correctAnswer")}{" "}
+            <strong>
+              <Furigana text={currentSentence.targetText} segments={currentSentence.furigana} />
+            </strong>{" "}
             <button
               onClick={() => handleRepeat({ text: currentSentence.targetText, languageCode: targetLanguage })}
               disabled={isRepeating}

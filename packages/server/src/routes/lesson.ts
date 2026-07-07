@@ -4,6 +4,11 @@ import { buildLessonPlan, DEFAULT_SCHEDULER_CONFIG } from "@pimsleursim/shared";
 
 export const lessonRouter = Router();
 
+const FuriganaSegmentSchema = z.object({
+  text: z.string(),
+  reading: z.string().optional(),
+});
+
 const VocabItemSchema = z.object({
   id: z.string(),
   sourceLanguage: z.string(),
@@ -13,6 +18,7 @@ const VocabItemSchema = z.object({
   notes: z.string().optional(),
   kanaReading: z.string().optional(),
   alternateReadings: z.array(z.string()).optional(),
+  furigana: z.array(FuriganaSegmentSchema).optional(),
 });
 
 const MasteryStateSchema = z.object({
