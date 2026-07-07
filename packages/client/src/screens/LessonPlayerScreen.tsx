@@ -18,6 +18,7 @@ interface Props {
   sourceLanguage: string;
   targetLanguage: string;
   onFinish: () => void;
+  finishLabel?: string;
 }
 
 interface SessionStats {
@@ -31,7 +32,14 @@ function readingDisplay(step: LessonStep): string | null {
   return [step.kanaReading, ...(step.alternateReadings ?? [])].join("／");
 }
 
-export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLanguage, targetLanguage, onFinish }: Props) {
+export function LessonPlayerScreen({
+  initialSteps,
+  initialMasteryMap,
+  sourceLanguage,
+  targetLanguage,
+  onFinish,
+  finishLabel,
+}: Props) {
   const { t } = useUiLanguage();
   const [queue, setQueue] = useState<LessonStep[]>(initialSteps);
   const [index, setIndex] = useState(0);
@@ -173,7 +181,7 @@ export function LessonPlayerScreen({ initialSteps, initialMasteryMap, sourceLang
           sourceLanguage={sourceLanguage}
           targetLanguage={targetLanguage}
         />
-        <button onClick={onFinish}>{t("backToUpload")}</button>
+        <button onClick={onFinish}>{finishLabel ?? t("backToUpload")}</button>
       </div>
     );
   }

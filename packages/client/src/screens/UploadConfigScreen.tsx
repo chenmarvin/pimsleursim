@@ -2,6 +2,7 @@ import { useState, type ChangeEvent } from "react";
 import type { LessonStep, MasteryMap, VocabItem } from "@pimsleursim/shared";
 import { DEFAULT_SCHEDULER_CONFIG } from "@pimsleursim/shared";
 import { extractVocabulary, fetchNextLesson } from "../api/client.js";
+import { extractTextFromPdf } from "../files/pdfText.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
 import { loadDeck, mergeCatalog } from "../storage/masteryStore.js";
 
@@ -25,15 +26,24 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [loadedFileName, setLoadedFileName] = useState<string | null>(null);
   const [truncationNotice, setTruncationNotice] = useState<{ processed: number; total: number } | null>(null);
+  const [scannedPageNumbers, setScannedPageNumbers] = useState<number[] | null>(null);
   const [pendingPayload, setPendingPayload] = useState<LessonReadyPayload | null>(null);
 
   async function handleFileSelect(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-selecting the same file later
     if (!file) return;
+    const isPdf = file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
     try {
-      const text = await file.text();
-      setRawText(text);
+      if (isPdf) {
+        const { text, scannedPageNumbers: scanned } = await extractTextFromPdf(file);
+        setRawText(text);
+        setScannedPageNumbers(scanned.length > 0 ? scanned : null);
+      } else {
+        const text = await file.text();
+        setRawText(text);
+        setScannedPageNumbers(null);
+      }
       setLoadedFileName(file.name);
       setError(null);
     } catch {
@@ -136,7 +146,8 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
       </div>
       <div>
         <label>
-          {t("loadTextFileLabel")} <input type="file" accept=".txt,text/plain" onChange={handleFileSelect} />
+          {t("loadTextFileLabel")}{" "}
+          <input type="file" accept=".txt,text/plain,.pdf,application/pdf" onChange={handleFileSelect} />
         </label>
         {loadedFileName && <span> {t("loadedFile", { fileName: loadedFileName })}</span>}
       </div>
@@ -147,6 +158,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         onChange={(e) => {
           setRawText(e.target.value);
           setLoadedFileName(null);
+          setScannedPageNumbers(null);
         }}
         placeholder={t("textareaPlaceholder")}
       />
@@ -156,6 +168,9 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         </button>
       </div>
       {error && <p style={{ color: "red" }}>{error}</p>}
+      {scannedPageNumbers && (
+        <p style={{ color: "darkorange" }}>{t("warningScannedPages", { pages: scannedPageNumbers.join(", ") })}</p>
+      )}
       {truncationNotice && (
         <p style={{ color: "darkorange" }}>
           {t("warningTruncated", { processed: truncationNotice.processed, total: truncationNotice.total })}{" "}
