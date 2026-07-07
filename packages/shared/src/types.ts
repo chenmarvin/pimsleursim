@@ -104,6 +104,29 @@ export interface ConversationResponse {
   lines: ConversationLine[];
 }
 
+export interface GrammarSentence {
+  label: string; // e.g. "Affirmative, present"
+  targetText: string;
+  sourceText: string;
+}
+
+export interface GrammarPoint {
+  patternName: string;
+  explanation: string; // one or two sentences, in the learner's native language
+  sentences: GrammarSentence[];
+}
+
+export interface GrammarDrillRequest {
+  sourceLanguage: string;
+  targetLanguage: string;
+  difficultyHint?: string; // free-form, e.g. "JLPT N5"
+  coveredPatterns: string[]; // pattern names already drilled, to avoid repeats
+}
+
+export interface GrammarDrillResponse {
+  point: GrammarPoint;
+}
+
 export interface TTSRequest {
   text: string;
   languageCode: string;

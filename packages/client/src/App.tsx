@@ -2,12 +2,16 @@ import { useState } from "react";
 import { LanguageSwitcher } from "./components/LanguageSwitcher.js";
 import { useUiLanguage, UiLanguageProvider } from "./i18n/useUiLanguage.js";
 import { DashboardScreen } from "./screens/DashboardScreen.js";
+import { GrammarDrillScreen, type GrammarDrillPayload } from "./screens/GrammarDrillScreen.js";
 import { LessonPlayerScreen } from "./screens/LessonPlayerScreen.js";
 import { UploadConfigScreen, type LessonReadyPayload } from "./screens/UploadConfigScreen.js";
 import { loadJapaneseMode, saveJapaneseMode } from "./storage/japaneseModeStore.js";
 
 type HomeScreenName = "upload" | "dashboard";
-type Screen = { name: HomeScreenName } | { name: "lesson"; payload: LessonReadyPayload };
+type Screen =
+  | { name: HomeScreenName }
+  | { name: "lesson"; payload: LessonReadyPayload }
+  | { name: "grammarDrill"; payload: GrammarDrillPayload };
 
 const MIN_FONT_SIZE = 12;
 const MAX_FONT_SIZE = 28;
@@ -52,9 +56,17 @@ function AppShell() {
           onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })}
           finishLabel={t(japaneseModeEnabled ? "backToDashboard" : "backToUpload")}
         />
+      ) : screen.name === "grammarDrill" ? (
+        <GrammarDrillScreen
+          point={screen.payload.point}
+          sourceLanguage={screen.payload.sourceLanguage}
+          targetLanguage={screen.payload.targetLanguage}
+          onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })}
+        />
       ) : screen.name === "dashboard" ? (
         <DashboardScreen
           onStartPractice={(payload) => setScreen({ name: "lesson", payload })}
+          onStartGrammar={(payload) => setScreen({ name: "grammarDrill", payload })}
           onGoToUpload={() => setScreen({ name: "upload" })}
         />
       ) : (

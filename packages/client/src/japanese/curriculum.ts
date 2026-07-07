@@ -51,4 +51,4 @@ export const DAILY_SCHEDULE_TEMPLATES: DailyScheduleTemplate[] = [
 // Modules with a working screen behind them. Everything else in
 // DailyModuleKey renders as a "coming soon" row on the dashboard until a
 // later session builds it out.
-export const BUILT_MODULES: ReadonlySet<DailyModuleKey> = new Set(["vocabReview", "vocabNew"]);
+export const BUILT_MODULES: ReadonlySet<DailyModuleKey> = new Set(["vocabReview", "vocabNew", "grammar"]);

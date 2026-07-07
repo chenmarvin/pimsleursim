@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import type { LessonReadyPayload } from "./UploadConfigScreen.js";
+import type { GrammarDrillPayload } from "./GrammarDrillScreen.js";
 import { DEFAULT_SCHEDULER_CONFIG, selectDueReviewItems } from "@pimsleursim/shared";
-import { fetchNextLesson } from "../api/client.js";
+import { fetchGrammarDrill, fetchNextLesson } from "../api/client.js";
 import {
   BUILT_MODULES,
   DAILY_SCHEDULE_TEMPLATES,
@@ -12,8 +13,9 @@ import {
 } from "../japanese/curriculum.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
 import type { StringKey } from "../i18n/strings.js";
-import { loadDeck } from "../storage/masteryStore.js";
+import { loadGrammarProgress } from "../storage/grammarProgressStore.js";
 import { loadJapaneseMode, saveJapaneseMode } from "../storage/japaneseModeStore.js";
+import { loadDeck } from "../storage/masteryStore.js";
 
 const JAPANESE_TARGET_LANGUAGE = "ja";
 const DEFAULT_SOURCE_LANGUAGE = "zh-TW";
@@ -29,6 +31,7 @@ interface DashboardRow {
   labelKey: StringKey;
   minutes: number;
   isVocab: boolean;
+  isGrammar: boolean;
   isBuilt: boolean;
 }
 
@@ -40,16 +43,24 @@ function buildRows(allocations: { module: DailyModuleKey; minutes: number }[]): 
       vocabMinutes += minutes;
       continue;
     }
-    rows.push({ key: module, labelKey: NON_VOCAB_LABEL_KEYS[module]!, minutes, isVocab: false, isBuilt: BUILT_MODULES.has(module) });
+    rows.push({
+      key: module,
+      labelKey: NON_VOCAB_LABEL_KEYS[module]!,
+      minutes,
+      isVocab: false,
+      isGrammar: module === "grammar",
+      isBuilt: BUILT_MODULES.has(module),
+    });
   }
   if (vocabMinutes > 0) {
-    rows.unshift({ key: "vocab", labelKey: "moduleVocab", minutes: vocabMinutes, isVocab: true, isBuilt: true });
+    rows.unshift({ key: "vocab", labelKey: "moduleVocab", minutes: vocabMinutes, isVocab: true, isGrammar: false, isBuilt: true });
   }
   return rows;
 }
 
 interface Props {
   onStartPractice: (payload: LessonReadyPayload) => void;
+  onStartGrammar: (payload: GrammarDrillPayload) => void;
   onGoToUpload: () => void;
 }
 
@@ -67,11 +78,12 @@ function mostCommonSourceLanguage(items: { sourceLanguage: string }[]): string {
   return best ?? DEFAULT_SOURCE_LANGUAGE;
 }
 
-export function DashboardScreen({ onStartPractice, onGoToUpload }: Props) {
+export function DashboardScreen({ onStartPractice, onStartGrammar, onGoToUpload }: Props) {
   const { t } = useUiLanguage();
   const [japaneseMode, setJapaneseMode] = useState(loadJapaneseMode);
   const [selectedMinutes, setSelectedMinutes] = useState(DAILY_SCHEDULE_TEMPLATES[0].totalMinutes);
   const [loading, setLoading] = useState(false);
+  const [grammarLoading, setGrammarLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const deck = useMemo(() => loadDeck(), []);
@@ -83,6 +95,7 @@ export function DashboardScreen({ onStartPractice, onGoToUpload }: Props) {
     () => selectDueReviewItems(deck.masteryMap, new Date(), Number.POSITIVE_INFINITY).length,
     [deck.masteryMap],
   );
+  const grammarProgress = useMemo(() => loadGrammarProgress(), []);
 
   const template =
     DAILY_SCHEDULE_TEMPLATES.find((tpl) => tpl.totalMinutes === selectedMinutes) ?? DAILY_SCHEDULE_TEMPLATES[0];
@@ -123,6 +136,25 @@ export function DashboardScreen({ onStartPractice, onGoToUpload }: Props) {
       setError(err instanceof Error ? err.message : t("errorGeneric"));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleStartGrammar() {
+    setGrammarLoading(true);
+    setError(null);
+    try {
+      const sourceLanguage = mostCommonSourceLanguage(japaneseItems);
+      const { point } = await fetchGrammarDrill({
+        sourceLanguage,
+        targetLanguage: JAPANESE_TARGET_LANGUAGE,
+        difficultyHint: `JLPT ${japaneseMode.currentPhase}`,
+        coveredPatterns: loadGrammarProgress().coveredPatterns,
+      });
+      onStartGrammar({ point, sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errorGeneric"));
+    } finally {
+      setGrammarLoading(false);
     }
   }
 
@@ -170,6 +202,7 @@ export function DashboardScreen({ onStartPractice, onGoToUpload }: Props) {
 
       <section>
         <p>{t("catalogStatus", { count: japaneseItems.length, due: dueCount })}</p>
+        <p>{t("grammarProgressLine", { count: grammarProgress.coveredPatterns.length, target: targets.grammar })}</p>
         <ul>
           {buildRows(template.allocations).map((row) => (
             <li key={row.key}>
@@ -177,6 +210,10 @@ export function DashboardScreen({ onStartPractice, onGoToUpload }: Props) {
               {row.isVocab ? (
                 <button onClick={handleStartPractice} disabled={loading || japaneseItems.length === 0}>
                   {t("startPractice")}
+                </button>
+              ) : row.isGrammar ? (
+                <button onClick={handleStartGrammar} disabled={grammarLoading}>
+                  {grammarLoading ? t("grammarLoading") : t("startPractice")}
                 </button>
               ) : (
                 !row.isBuilt && <span>({t("comingSoon")})</span>

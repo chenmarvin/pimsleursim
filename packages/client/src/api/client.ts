@@ -3,6 +3,8 @@ import type {
   ConversationResponse,
   ExtractRequest,
   ExtractResponse,
+  GrammarDrillRequest,
+  GrammarDrillResponse,
   LessonPlanRequest,
   LessonPlanResponse,
   TTSRequest,
@@ -36,4 +38,8 @@ export function synthesizeSpeech(req: TTSRequest): Promise<TTSResponse> {
 
 export function generateConversation(req: ConversationRequest): Promise<ConversationResponse> {
   return postJson<ConversationResponse>("/api/conversation", req);
+}
+
+export function fetchGrammarDrill(req: GrammarDrillRequest): Promise<GrammarDrillResponse> {
+  return postJson<GrammarDrillResponse>("/api/grammar/next", req);
 }

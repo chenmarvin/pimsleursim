@@ -63,6 +63,10 @@ const en = {
   catalogStatus: "{{count}} words in your catalog · {{due}} due for review today",
   emptyCatalogPrompt: "No Japanese vocabulary yet — upload some material to get started.",
   goToUpload: "Upload material",
+  grammarProgressLine: "{{count}} / ~{{target}} grammar points covered",
+  grammarLoading: "Loading a new grammar pattern...",
+  grammarStepProgress: "Sentence {{current}} / {{total}}",
+  grammarPatternCovered: "Pattern practiced: {{pattern}}",
 };
 
 const zhTW: typeof en = {
@@ -120,6 +124,10 @@ const zhTW: typeof en = {
   catalogStatus: "單字庫共 {{count}} 個・今天有 {{due}} 個待複習",
   emptyCatalogPrompt: "目前還沒有日文單字，請先上傳練習材料。",
   goToUpload: "上傳練習材料",
+  grammarProgressLine: "已學文法：{{count}} / 約 {{target}} 點",
+  grammarLoading: "正在載入新的文法點...",
+  grammarStepProgress: "例句 {{current}} / {{total}}",
+  grammarPatternCovered: "已練習文法：{{pattern}}",
 };
 
 export const STRINGS: Record<UiLanguage, typeof en> = { en, "zh-TW": zhTW };
