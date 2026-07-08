@@ -147,7 +147,13 @@ export async function extractVocabulary(opts: {
 
   const response = await client.messages.parse({
     model: config.claudeModel,
-    max_tokens: 4096,
+    // Each Japanese item now carries kanaReading/alternateReadings/furigana/
+    // exampleFurigana plus englishTranslation/exampleSentence/exampleTranslation/
+    // commonMistake/memoryTip/chineseDifference — up to maxItems=60 of those no
+    // longer fits in 4096 output tokens. A truncated response breaks structured-
+    // output JSON parsing entirely (mid-string cutoff), so this needs real
+    // headroom rather than a tight cap.
+    max_tokens: 16000,
     output_config: { format: zodOutputFormat(extractionSchema) },
     messages: [
       {
