@@ -11,6 +11,12 @@ import type {
   LessonPlanResponse,
   ListeningDrillRequest,
   ListeningDrillResponse,
+  N5GrammarContentRequest,
+  N5GrammarContentResponse,
+  N5KanjiContentRequest,
+  N5KanjiContentResponse,
+  N5VocabContentRequest,
+  N5VocabContentResponse,
   QuizDrillRequest,
   QuizDrillResponse,
   ReadingDrillRequest,
@@ -78,4 +84,16 @@ export function fetchShadowingSet(req: ShadowingDrillRequest): Promise<Shadowing
 
 export function fetchWritingSentences(req: WritingDrillRequest): Promise<WritingDrillResponse> {
   return postJson<WritingDrillResponse>("/api/writing/next", req);
+}
+
+export function fetchN5VocabContent(req: N5VocabContentRequest): Promise<N5VocabContentResponse> {
+  return postJson<N5VocabContentResponse>("/api/n5-vocab/content", req);
+}
+
+export function fetchN5KanjiContent(req: N5KanjiContentRequest): Promise<N5KanjiContentResponse> {
+  return postJson<N5KanjiContentResponse>("/api/kanji/n5-content", req);
+}
+
+export function fetchN5GrammarContent(req: N5GrammarContentRequest): Promise<N5GrammarContentResponse> {
+  return postJson<N5GrammarContentResponse>("/api/grammar/n5-content", req);
 }

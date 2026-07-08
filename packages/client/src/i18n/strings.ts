@@ -137,6 +137,20 @@ const en = {
   sessionLoading: "Preparing the next part...",
   sessionOutcomesTitle: "Session complete! Today you:",
   sessionReviewOutcomesTitle: "Review complete! Today you reviewed:",
+  n5StartLesson: "Start Lesson {{number}}",
+  n5LessonProgressLine: "Lesson {{current}} of {{total}} ({{completed}} completed)",
+  n5LessonHeader: "Lesson {{number}} of {{total}}",
+  n5ReviewRangeLabel: "Reviewing Lessons {{from}}–{{to}}",
+  n5LessonThemeLabel: "Theme:",
+  n5LessonObjectivesLabel: "Objectives:",
+  n5LessonBegin: "Begin lesson",
+  n5LessonLoading: "Preparing the lesson...",
+  n5KanjiCheckPrompt: "Can you read these words using this lesson's kanji?",
+  n5ReviewChecklistTitle: "Review",
+  n5OutcomesTitle: "Expected Learning Outcomes",
+  n5ChineseNotesTitle: "🇹🇼 Chinese Notes",
+  n5LessonCompleteTitle: "Lesson {{number}} complete!",
+  n5CurriculumComplete: "You've completed the full N5 curriculum! 🎉",
 };
 
 const zhTW: typeof en = {
@@ -268,6 +282,20 @@ const zhTW: typeof en = {
   sessionLoading: "正在準備下一部分...",
   sessionOutcomesTitle: "課程完成！今天你完成了：",
   sessionReviewOutcomesTitle: "複習完成！今天你複習了：",
+  n5StartLesson: "開始第 {{number}} 課",
+  n5LessonProgressLine: "第 {{current}} / {{total}} 課（已完成 {{completed}} 課）",
+  n5LessonHeader: "第 {{number}} / {{total}} 課",
+  n5ReviewRangeLabel: "複習第 {{from}}–{{to}} 課",
+  n5LessonThemeLabel: "主題：",
+  n5LessonObjectivesLabel: "學習目標：",
+  n5LessonBegin: "開始上課",
+  n5LessonLoading: "課程準備中...",
+  n5KanjiCheckPrompt: "你會唸這些用到本課漢字的詞嗎？",
+  n5ReviewChecklistTitle: "複習",
+  n5OutcomesTitle: "學習成果",
+  n5ChineseNotesTitle: "🇹🇼 中文提醒",
+  n5LessonCompleteTitle: "第 {{number}} 課完成！",
+  n5CurriculumComplete: "你已完成整個 N5 課程！🎉",
 };
 
 export const STRINGS: Record<UiLanguage, typeof en> = { en, "zh-TW": zhTW };

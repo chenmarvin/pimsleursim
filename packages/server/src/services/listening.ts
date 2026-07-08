@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import type { ListeningScript } from "@pimsleursim/shared";
+import type { ListeningScript, ReviewFocus } from "@pimsleursim/shared";
 import { config } from "../config.js";
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey });
@@ -70,11 +70,22 @@ function languageDisplayName(bcp47: string): string {
   }
 }
 
+// N5 review lessons pass previously-taught words/patterns here so the script
+// reinforces actual prior material instead of inventing unrelated content (REQ-11).
+function reviewFocusLine(reviewFocus?: ReviewFocus): string {
+  if (!reviewFocus || (reviewFocus.vocabulary.length === 0 && reviewFocus.grammarPatterns.length === 0)) return "";
+  const parts: string[] = [];
+  if (reviewFocus.vocabulary.length > 0) parts.push(`vocabulary: ${reviewFocus.vocabulary.join(", ")}`);
+  if (reviewFocus.grammarPatterns.length > 0) parts.push(`grammar patterns: ${reviewFocus.grammarPatterns.join(", ")}`);
+  return `\nThis is a REVIEW script: naturally weave in as many of these previously-taught items as you reasonably can, rather than introducing new vocabulary/grammar — ${parts.join("; ")}.`;
+}
+
 function buildPrompt(opts: {
   sourceLanguageName: string;
   targetLanguageName: string;
   difficultyHint?: string;
   isJapanese: boolean;
+  reviewFocus?: ReviewFocus;
 }): string {
   const difficultyLine = opts.difficultyHint
     ? `Target difficulty: ${opts.difficultyHint}.`
@@ -88,7 +99,7 @@ function buildPrompt(opts: {
 
 Write a short, natural spoken conversation (a listening-comprehension script) in ${opts.targetLanguageName} between two speakers labeled "A" and "B", for a learner whose native language is ${opts.sourceLanguageName}.
 
-${difficultyLine}
+${difficultyLine}${reviewFocusLine(opts.reviewFocus)}
 
 Requirements:
 - ${MIN_LINES}-${MAX_LINES} lines total, alternating speakers, on a coherent everyday topic (e.g. introductions, ordering food, asking directions, small talk).
@@ -101,6 +112,7 @@ export async function generateListeningScript(opts: {
   sourceLanguage: string;
   targetLanguage: string;
   difficultyHint?: string;
+  reviewFocus?: ReviewFocus;
 }): Promise<ListeningScript> {
   const isJapanese = opts.targetLanguage.startsWith("ja");
 
@@ -116,6 +128,7 @@ export async function generateListeningScript(opts: {
           targetLanguageName: languageDisplayName(opts.targetLanguage),
           difficultyHint: opts.difficultyHint,
           isJapanese,
+          reviewFocus: opts.reviewFocus,
         }),
       },
     ],

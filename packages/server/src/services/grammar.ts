@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import type { GrammarPoint } from "@pimsleursim/shared";
+import type { GrammarPoint, N5GrammarSeed } from "@pimsleursim/shared";
 import { config } from "../config.js";
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey });
@@ -163,4 +163,112 @@ export async function generateGrammarDrill(opts: {
       furigana: validFurigana(sentence.furigana, sentence.targetText),
     })),
   };
+}
+
+// ---- Fixed-item content generation (N5 syllabus lessons) ----
+// The pattern name is a fixed fact from the syllabus (n5Syllabus.ts); only the pedagogical
+// content below (explanation, structure notation, example sentences) is generated.
+
+function makeN5GrammarSchema(isJapanese: boolean) {
+  return z.object({
+    explanation: z.string().describe("One or two sentences explaining the pattern's MEANING, in the learner's native language"),
+    structure: z.string().describe(
+      "A concise notation of the grammar structure itself, e.g. 'A は B です' or 'Verb (て-form) + はいけない' — " +
+      "distinct from explanation, which describes what it means rather than how it's built."
+    ),
+    sentences: z.array(isJapanese ? JapaneseSentenceSchema : SentenceSchema),
+    commonMistake: z.string().optional().describe(
+      "A common mistake learners (especially from the learner's native-language background) make with this pattern, " +
+      "in the learner's native language. Omit entirely if there isn't a notable one."
+    ),
+    chineseDifference: z.string().optional().describe(
+      "Only for learners whose native language uses Chinese characters: if this grammar pattern is a 'false friend' — " +
+      "resembles a Chinese grammatical construction or word but works meaningfully differently — explain the difference " +
+      "here, in the learner's native language. Omit entirely if there's no meaningful difference worth flagging."
+    ),
+  });
+}
+
+function makeN5GrammarBatchSchema(isJapanese: boolean) {
+  return z.object({ points: z.array(makeN5GrammarSchema(isJapanese)) });
+}
+
+function buildN5BatchPrompt(opts: {
+  seeds: N5GrammarSeed[];
+  sourceLanguageName: string;
+  targetLanguageName: string;
+  isJapanese: boolean;
+}): string {
+  const patternList = opts.seeds.map((seed, i) => `${i + 1}. ${seed.pattern} — ${seed.englishGloss}`).join("\n");
+
+  const furiganaInstruction = opts.isJapanese
+    ? "\n- For EVERY sentence you MUST also provide furigana: targetText split into segments so the app can show hiragana above each kanji run. See the furigana field description for the exact format."
+    : "";
+
+  return `You are a language-teaching content designer following the Pimsleur method.
+
+The ${opts.seeds.length} ${opts.targetLanguageName} grammar patterns below are FIXED — they come from a curated N5 curriculum. Do NOT change or substitute them. For EACH pattern, in the SAME ORDER, teach it to a learner whose native language is ${opts.sourceLanguageName}:
+
+${patternList}
+
+Requirements, for each pattern:
+- Write a short (1-2 sentence) explanation of the pattern's MEANING, in ${opts.sourceLanguageName}.
+- Write a concise STRUCTURE notation showing how the pattern is built — distinct from the meaning explanation.
+- Provide exactly ${SENTENCES_PER_POINT} example sentences drilling the pattern, each with a short label and a natural idiomatic translation.
+- If the pattern is a conjugable adjective, copula, or verb form, make the 4 sentences the same base sentence transformed across affirmative/negative x present/past (in that order). Otherwise, provide 4 varied natural example sentences that each clearly demonstrate the pattern in a different realistic context.
+- Keep sentences short and conversational, at N5 difficulty.
+- Only when genuinely useful, give a commonMistake, in ${opts.sourceLanguageName}. Leave it out entirely when there isn't a notable one.
+- If ${opts.sourceLanguageName} uses Chinese characters (e.g. Traditional Chinese) and the pattern is a "false friend" relative to Chinese grammar/usage, explain the difference in chineseDifference. Omit entirely when there's no meaningful difference worth flagging.${furiganaInstruction}`;
+}
+
+export async function generateN5GrammarContent(opts: {
+  sourceLanguage: string;
+  targetLanguage: string;
+  seeds: N5GrammarSeed[];
+}): Promise<GrammarPoint[]> {
+  const isJapanese = opts.targetLanguage.startsWith("ja");
+
+  const response = await client.messages.parse({
+    model: config.claudeModel,
+    max_tokens: 8192,
+    output_config: { format: zodOutputFormat(makeN5GrammarBatchSchema(isJapanese)) },
+    messages: [
+      {
+        role: "user",
+        content: buildN5BatchPrompt({
+          seeds: opts.seeds,
+          sourceLanguageName: languageDisplayName(opts.sourceLanguage),
+          targetLanguageName: languageDisplayName(opts.targetLanguage),
+          isJapanese,
+        }),
+      },
+    ],
+  });
+
+  if (!response.parsed_output) {
+    throw new Error("N5 grammar content generation returned unparseable output");
+  }
+
+  const { points } = response.parsed_output;
+  if (points.length < opts.seeds.length) {
+    throw new Error(`N5 grammar content generation returned ${points.length} points, expected ${opts.seeds.length}`);
+  }
+
+  return opts.seeds.map((seed, i) => {
+    const generated = points[i];
+    if (generated.sentences.length < SENTENCES_PER_POINT) {
+      throw new Error(`N5 grammar content for ${seed.pattern} returned only ${generated.sentences.length} sentences, expected ${SENTENCES_PER_POINT}`);
+    }
+    return {
+      patternName: seed.pattern,
+      explanation: generated.explanation,
+      structure: generated.structure,
+      commonMistake: generated.commonMistake,
+      chineseDifference: generated.chineseDifference,
+      sentences: generated.sentences.slice(0, SENTENCES_PER_POINT).map((sentence) => ({
+        ...sentence,
+        furigana: validFurigana(sentence.furigana, sentence.targetText),
+      })),
+    };
+  });
 }

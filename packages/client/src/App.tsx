@@ -9,6 +9,7 @@ import { KanaScreen } from "./screens/KanaScreen.js";
 import { KanjiDrillScreen, type KanjiDrillPayload } from "./screens/KanjiDrillScreen.js";
 import { LessonPlayerScreen } from "./screens/LessonPlayerScreen.js";
 import { ListeningScreen, type ListeningDrillPayload } from "./screens/ListeningScreen.js";
+import { N5LessonScreen } from "./screens/N5LessonScreen.js";
 import { ReadingScreen, type ReadingDrillPayload } from "./screens/ReadingScreen.js";
 import { UploadConfigScreen, type LessonReadyPayload } from "./screens/UploadConfigScreen.js";
 import { loadJapaneseMode, saveJapaneseMode } from "./storage/japaneseModeStore.js";
@@ -22,6 +23,7 @@ type Screen =
   | { name: "listeningDrill"; payload: ListeningDrillPayload }
   | { name: "readingDrill"; payload: ReadingDrillPayload }
   | { name: "session" }
+  | { name: "n5Lesson" }
   | { name: "kana" };
 
 const MIN_FONT_SIZE = 12;
@@ -99,6 +101,8 @@ function AppShell() {
         />
       ) : screen.name === "session" ? (
         <DailySessionScreen onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })} />
+      ) : screen.name === "n5Lesson" ? (
+        <N5LessonScreen onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })} />
       ) : screen.name === "kana" ? (
         <KanaScreen onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })} />
       ) : screen.name === "dashboard" ? (
@@ -109,7 +113,9 @@ function AppShell() {
           onStartKana={() => setScreen({ name: "kana" })}
           onStartListening={(payload) => setScreen({ name: "listeningDrill", payload })}
           onStartReading={(payload) => setScreen({ name: "readingDrill", payload })}
-          onStartSession={() => setScreen({ name: "session" })}
+          onStartSession={() =>
+            loadJapaneseMode().currentPhase === "N5" ? setScreen({ name: "n5Lesson" }) : setScreen({ name: "session" })
+          }
           onGoToUpload={() => setScreen({ name: "upload" })}
         />
       ) : (

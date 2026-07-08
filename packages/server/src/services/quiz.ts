@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import type { QuizSet } from "@pimsleursim/shared";
+import type { QuizSet, ReviewFocus } from "@pimsleursim/shared";
 import { config } from "../config.js";
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey });
@@ -40,7 +40,22 @@ function languageDisplayName(bcp47: string): string {
   }
 }
 
-function buildPrompt(opts: { sourceLanguageName: string; targetLanguageName: string; difficultyHint?: string }): string {
+// N5 review lessons pass previously-taught words/patterns here so the quiz tests
+// actual prior material instead of inventing unrelated content (REQ-11).
+function reviewFocusLine(reviewFocus?: ReviewFocus): string {
+  if (!reviewFocus || (reviewFocus.vocabulary.length === 0 && reviewFocus.grammarPatterns.length === 0)) return "";
+  const parts: string[] = [];
+  if (reviewFocus.vocabulary.length > 0) parts.push(`vocabulary: ${reviewFocus.vocabulary.join(", ")}`);
+  if (reviewFocus.grammarPatterns.length > 0) parts.push(`grammar patterns: ${reviewFocus.grammarPatterns.join(", ")}`);
+  return `\nThis is a REVIEW quiz: base questions on these previously-taught items as much as reasonably possible, rather than introducing new vocabulary/grammar — ${parts.join("; ")}.`;
+}
+
+function buildPrompt(opts: {
+  sourceLanguageName: string;
+  targetLanguageName: string;
+  difficultyHint?: string;
+  reviewFocus?: ReviewFocus;
+}): string {
   const difficultyLine = opts.difficultyHint
     ? `Target difficulty: ${opts.difficultyHint}.`
     : "Target a beginner learner.";
@@ -49,7 +64,7 @@ function buildPrompt(opts: { sourceLanguageName: string; targetLanguageName: str
 
 Write a short quiz in ${opts.targetLanguageName} for a learner whose native language is ${opts.sourceLanguageName}.
 
-${difficultyLine}
+${difficultyLine}${reviewFocusLine(opts.reviewFocus)}
 
 Requirements:
 - Exactly ${PILLARS.length} questions, one per pillar: ${PILLARS.join(", ")}.
@@ -66,6 +81,7 @@ export async function generateQuiz(opts: {
   sourceLanguage: string;
   targetLanguage: string;
   difficultyHint?: string;
+  reviewFocus?: ReviewFocus;
 }): Promise<QuizSet> {
   const response = await client.messages.parse({
     model: config.claudeModel,
@@ -78,6 +94,7 @@ export async function generateQuiz(opts: {
           sourceLanguageName: languageDisplayName(opts.sourceLanguage),
           targetLanguageName: languageDisplayName(opts.targetLanguage),
           difficultyHint: opts.difficultyHint,
+          reviewFocus: opts.reviewFocus,
         }),
       },
     ],

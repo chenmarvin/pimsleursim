@@ -4,7 +4,7 @@ import type { GrammarDrillPayload } from "./GrammarDrillScreen.js";
 import type { KanjiDrillPayload } from "./KanjiDrillScreen.js";
 import type { ListeningDrillPayload } from "./ListeningScreen.js";
 import type { ReadingDrillPayload } from "./ReadingScreen.js";
-import { DEFAULT_SCHEDULER_CONFIG, selectDueReviewItems } from "@pimsleursim/shared";
+import { DEFAULT_SCHEDULER_CONFIG, N5_LESSON_COUNT, selectDueReviewItems } from "@pimsleursim/shared";
 import { fetchGrammarDrill, fetchKanjiDrill, fetchListeningDrill, fetchNextLesson, fetchReadingDrill } from "../api/client.js";
 import {
   BUILT_MODULES,
@@ -21,9 +21,10 @@ import { loadJapaneseMode, saveJapaneseMode } from "../storage/japaneseModeStore
 import { loadKanaProgress } from "../storage/kanaProgressStore.js";
 import { loadKanjiProgress } from "../storage/kanjiProgressStore.js";
 import { loadDeck } from "../storage/masteryStore.js";
+import { loadN5LessonState } from "../storage/n5LessonStore.js";
+import { mostCommonSourceLanguage } from "../japanese/sourceLanguage.js";
 
 const JAPANESE_TARGET_LANGUAGE = "ja";
-const DEFAULT_SOURCE_LANGUAGE = "zh-TW";
 
 const NON_VOCAB_LABEL_KEYS: Partial<Record<DailyModuleKey, StringKey>> = {
   grammar: "moduleGrammar",
@@ -91,20 +92,6 @@ interface Props {
   onGoToUpload: () => void;
 }
 
-function mostCommonSourceLanguage(items: { sourceLanguage: string }[]): string {
-  const counts = new Map<string, number>();
-  for (const item of items) counts.set(item.sourceLanguage, (counts.get(item.sourceLanguage) ?? 0) + 1);
-  let best: string | null = null;
-  let bestCount = 0;
-  for (const [lang, count] of counts) {
-    if (count > bestCount) {
-      best = lang;
-      bestCount = count;
-    }
-  }
-  return best ?? DEFAULT_SOURCE_LANGUAGE;
-}
-
 export function DashboardScreen({
   onStartPractice,
   onStartGrammar,
@@ -137,6 +124,9 @@ export function DashboardScreen({
   const grammarProgress = useMemo(() => loadGrammarProgress(), []);
   const kanjiProgress = useMemo(() => loadKanjiProgress(), []);
   const kanaProgress = useMemo(() => loadKanaProgress(), []);
+  const n5LessonState = useMemo(() => loadN5LessonState(), []);
+  const isN5 = japaneseMode.currentPhase === "N5";
+  const n5CurriculumComplete = n5LessonState.currentLessonNumber > N5_LESSON_COUNT;
 
   const template =
     DAILY_SCHEDULE_TEMPLATES.find((tpl) => tpl.totalMinutes === selectedMinutes) ?? DAILY_SCHEDULE_TEMPLATES[0];
@@ -259,7 +249,15 @@ export function DashboardScreen({
       <h1>{t("dashboardTitle")}</h1>
 
       <p>
-        <button onClick={onStartSession}>{t("startFullSession")}</button>
+        {isN5 ? (
+          n5CurriculumComplete ? (
+            <span>{t("n5CurriculumComplete")}</span>
+          ) : (
+            <button onClick={onStartSession}>{t("n5StartLesson", { number: n5LessonState.currentLessonNumber })}</button>
+          )
+        ) : (
+          <button onClick={onStartSession}>{t("startFullSession")}</button>
+        )}
       </p>
 
       <section>
@@ -307,8 +305,20 @@ export function DashboardScreen({
 
       <section>
         <p>{t("catalogStatus", { count: japaneseItems.length, due: dueCount })}</p>
-        <p>{t("grammarProgressLine", { count: grammarProgress.coveredPatterns.length, target: targets.grammar })}</p>
-        <p>{t("kanjiProgressLine", { count: kanjiProgress.coveredKanji.length, target: targets.kanji })}</p>
+        {isN5 ? (
+          <p>
+            {t("n5LessonProgressLine", {
+              current: Math.min(n5LessonState.currentLessonNumber, N5_LESSON_COUNT),
+              total: N5_LESSON_COUNT,
+              completed: n5LessonState.completedLessons.length,
+            })}
+          </p>
+        ) : (
+          <>
+            <p>{t("grammarProgressLine", { count: grammarProgress.coveredPatterns.length, target: targets.grammar })}</p>
+            <p>{t("kanjiProgressLine", { count: kanjiProgress.coveredKanji.length, target: targets.kanji })}</p>
+          </>
+        )}
         <ul>
           {buildRows(template.allocations).map((row) => (
             <li key={row.key}>

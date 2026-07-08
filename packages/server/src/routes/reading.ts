@@ -4,10 +4,16 @@ import { generateReadingPassage } from "../services/reading.js";
 
 export const readingRouter = Router();
 
+const ReviewFocusSchema = z.object({
+  vocabulary: z.array(z.string()),
+  grammarPatterns: z.array(z.string()),
+});
+
 const ReadingDrillRequestSchema = z.object({
   sourceLanguage: z.string().min(1),
   targetLanguage: z.string().min(1),
   difficultyHint: z.string().optional(),
+  reviewFocus: ReviewFocusSchema.optional(),
 });
 
 readingRouter.post("/next", async (req, res, next) => {

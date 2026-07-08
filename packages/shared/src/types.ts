@@ -153,10 +153,18 @@ export interface ListeningScript {
   questions: ListeningQuestion[];
 }
 
+// Only set for N5 review lessons: previously-taught words/patterns to weave into
+// generated content, instead of inventing unrelated material (see REQ-11).
+export interface ReviewFocus {
+  vocabulary: string[];
+  grammarPatterns: string[];
+}
+
 export interface ListeningDrillRequest {
   sourceLanguage: string;
   targetLanguage: string;
   difficultyHint?: string; // free-form, e.g. "JLPT N5"
+  reviewFocus?: ReviewFocus;
 }
 
 export interface ListeningDrillResponse {
@@ -179,6 +187,7 @@ export interface ReadingDrillRequest {
   sourceLanguage: string;
   targetLanguage: string;
   difficultyHint?: string; // free-form, e.g. "JLPT N5"
+  reviewFocus?: ReviewFocus;
 }
 
 export interface ReadingDrillResponse {
@@ -268,6 +277,7 @@ export interface QuizDrillRequest {
   sourceLanguage: string;
   targetLanguage: string;
   difficultyHint?: string; // free-form, e.g. "JLPT N5"
+  reviewFocus?: ReviewFocus;
 }
 
 export interface QuizDrillResponse {
@@ -304,6 +314,7 @@ export interface WritingDrillRequest {
   sourceLanguage: string;
   targetLanguage: string;
   difficultyHint?: string;
+  reviewFocus?: ReviewFocus;
 }
 
 export interface WritingDrillResponse {

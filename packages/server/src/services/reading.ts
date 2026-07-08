@@ -1,7 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
-import type { ReadingPassage } from "@pimsleursim/shared";
+import type { ReadingPassage, ReviewFocus } from "@pimsleursim/shared";
 import { config } from "../config.js";
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey });
@@ -65,11 +65,22 @@ function materialTypeHint(difficultyHint?: string): string {
   return "";
 }
 
+// N5 review lessons pass previously-taught words/patterns here so the passage
+// reinforces actual prior material instead of inventing unrelated content (REQ-11).
+function reviewFocusLine(reviewFocus?: ReviewFocus): string {
+  if (!reviewFocus || (reviewFocus.vocabulary.length === 0 && reviewFocus.grammarPatterns.length === 0)) return "";
+  const parts: string[] = [];
+  if (reviewFocus.vocabulary.length > 0) parts.push(`vocabulary: ${reviewFocus.vocabulary.join(", ")}`);
+  if (reviewFocus.grammarPatterns.length > 0) parts.push(`grammar patterns: ${reviewFocus.grammarPatterns.join(", ")}`);
+  return `\nThis is a REVIEW passage: naturally weave in as many of these previously-taught items as you reasonably can, rather than introducing new vocabulary/grammar — ${parts.join("; ")}.`;
+}
+
 function buildPrompt(opts: {
   sourceLanguageName: string;
   targetLanguageName: string;
   difficultyHint?: string;
   isJapanese: boolean;
+  reviewFocus?: ReviewFocus;
 }): string {
   const difficultyLine = opts.difficultyHint
     ? `Target difficulty: ${opts.difficultyHint}.${materialTypeHint(opts.difficultyHint)}`
@@ -83,7 +94,7 @@ function buildPrompt(opts: {
 
 Write a short reading passage in ${opts.targetLanguageName} for a learner whose native language is ${opts.sourceLanguageName}.
 
-${difficultyLine}
+${difficultyLine}${reviewFocusLine(opts.reviewFocus)}
 
 Requirements:
 - At beginner levels keep the passage to just a few short sentences; at higher levels it may be a short paragraph, but always keep it appropriately concise for spoken-repetition-style study, not a full article.
@@ -96,6 +107,7 @@ export async function generateReadingPassage(opts: {
   sourceLanguage: string;
   targetLanguage: string;
   difficultyHint?: string;
+  reviewFocus?: ReviewFocus;
 }): Promise<ReadingPassage> {
   const isJapanese = opts.targetLanguage.startsWith("ja");
 
@@ -111,6 +123,7 @@ export async function generateReadingPassage(opts: {
           targetLanguageName: languageDisplayName(opts.targetLanguage),
           difficultyHint: opts.difficultyHint,
           isJapanese,
+          reviewFocus: opts.reviewFocus,
         }),
       },
     ],

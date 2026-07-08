@@ -4,10 +4,16 @@ import { generateWritingSentences } from "../services/writing.js";
 
 export const writingRouter = Router();
 
+const ReviewFocusSchema = z.object({
+  vocabulary: z.array(z.string()),
+  grammarPatterns: z.array(z.string()),
+});
+
 const WritingDrillRequestSchema = z.object({
   sourceLanguage: z.string().min(1),
   targetLanguage: z.string().min(1),
   difficultyHint: z.string().optional(),
+  reviewFocus: ReviewFocusSchema.optional(),
 });
 
 writingRouter.post("/next", async (req, res, next) => {

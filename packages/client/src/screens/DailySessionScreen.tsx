@@ -18,6 +18,7 @@ import { loadKanaProgress } from "../storage/kanaProgressStore.js";
 import { loadKanjiProgress } from "../storage/kanjiProgressStore.js";
 import { loadDeck } from "../storage/masteryStore.js";
 import { incrementCompletedSessions, isReviewSession, loadSessionProgress } from "../storage/sessionProgressStore.js";
+import { mostCommonSourceLanguage } from "../japanese/sourceLanguage.js";
 import { GrammarDrillScreen, type GrammarDrillPayload } from "./GrammarDrillScreen.js";
 import { KanjiDrillScreen, type KanjiDrillPayload } from "./KanjiDrillScreen.js";
 import { LessonPlayerScreen } from "./LessonPlayerScreen.js";
@@ -29,7 +30,6 @@ import type { LessonReadyPayload } from "./UploadConfigScreen.js";
 import { WritingScreen, type WritingDrillPayload } from "./WritingScreen.js";
 
 const JAPANESE_TARGET_LANGUAGE = "ja";
-const DEFAULT_SOURCE_LANGUAGE = "zh-TW";
 
 type ModuleKind = "vocab" | "kanji" | "grammar" | "reading" | "listening" | "speaking" | "writing" | "quiz";
 
@@ -60,20 +60,6 @@ type StepState =
 
 interface Props {
   onFinish: () => void;
-}
-
-function mostCommonSourceLanguage(items: { sourceLanguage: string }[]): string {
-  const counts = new Map<string, number>();
-  for (const item of items) counts.set(item.sourceLanguage, (counts.get(item.sourceLanguage) ?? 0) + 1);
-  let best: string | null = null;
-  let bestCount = 0;
-  for (const [lang, count] of counts) {
-    if (count > bestCount) {
-      best = lang;
-      bestCount = count;
-    }
-  }
-  return best ?? DEFAULT_SOURCE_LANGUAGE;
 }
 
 export function DailySessionScreen({ onFinish }: Props) {
