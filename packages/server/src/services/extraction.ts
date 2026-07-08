@@ -145,7 +145,11 @@ export async function extractVocabulary(opts: {
   const isJapanese = opts.targetLanguage.startsWith("ja");
   const extractionSchema = makeExtractionSchema(isJapanese);
 
-  const response = await client.messages.parse({
+  // The Anthropic SDK refuses non-streaming calls whose max_tokens implies
+  // the request could run past its 10-minute timeout — and the max_tokens
+  // this needs (see below) crosses that line well before maxItems=60, so
+  // this has to stream rather than use messages.parse()'s plain request.
+  const stream = client.messages.stream({
     model: config.claudeModel,
     // Each Japanese item now carries kanaReading/alternateReadings/furigana/
     // exampleFurigana plus englishTranslation/exampleSentence/exampleTranslation/
@@ -169,6 +173,7 @@ export async function extractVocabulary(opts: {
       },
     ],
   });
+  const response = await stream.finalMessage();
 
   if (!response.parsed_output) {
     throw new Error("Vocabulary extraction returned unparseable output");
