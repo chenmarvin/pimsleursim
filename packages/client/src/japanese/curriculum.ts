@@ -9,7 +9,7 @@ export interface JlptPhaseTarget {
 }
 
 export const JLPT_PHASE_TARGETS: Record<JlptPhase, JlptPhaseTarget> = {
-  N5: { vocab: 800, kanji: 100, grammar: 80 },
+  N5: { vocab: 800, kanji: 140, grammar: 80 },
   N4: { vocab: 1500, kanji: 300, grammar: 170 },
   N3: { vocab: 3500, kanji: 650, grammar: 350 },
   N2: { vocab: 6000, kanji: 1000, grammar: 500 },

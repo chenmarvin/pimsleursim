@@ -172,6 +172,17 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "一", onReading: "イチ、イツ", kunReading: "ひと.つ", englishGloss: "one" },
       { character: "二", onReading: "ニ", kunReading: "ふた.つ", englishGloss: "two" },
       { character: "三", onReading: "サン", kunReading: "みっ.つ", englishGloss: "three" },
+      { character: "四", onReading: "シ", kunReading: "よ.つ、よん", englishGloss: "four" },
+      { character: "五", onReading: "ゴ", kunReading: "いつ.つ", englishGloss: "five" },
+      { character: "六", onReading: "ロク", kunReading: "むっ.つ", englishGloss: "six" },
+      { character: "七", onReading: "シチ", kunReading: "なな.つ", englishGloss: "seven" },
+      { character: "八", onReading: "ハチ", kunReading: "やっ.つ", englishGloss: "eight" },
+      { character: "九", onReading: "キュウ、ク", kunReading: "ここの.つ", englishGloss: "nine" },
+      { character: "十", onReading: "ジュウ", kunReading: "とお", englishGloss: "ten" },
+      { character: "百", onReading: "ヒャク", kunReading: "—", englishGloss: "hundred" },
+      { character: "千", onReading: "セン", kunReading: "—", englishGloss: "thousand" },
+      { character: "万", onReading: "マン、バン", kunReading: "—", englishGloss: "ten thousand" },
+      { character: "円", onReading: "エン", kunReading: "—", englishGloss: "yen, circle" },
     ],
     grammar: [
       { pattern: "〜も", englishGloss: "also, too" },
@@ -218,6 +229,9 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "父", onReading: "フ", kunReading: "ちち", englishGloss: "father" },
       { character: "母", onReading: "ボ", kunReading: "はは", englishGloss: "mother" },
       { character: "子", onReading: "シ", kunReading: "こ", englishGloss: "child" },
+      { character: "男", onReading: "ダン、ナン", kunReading: "おとこ", englishGloss: "male" },
+      { character: "女", onReading: "ジョ、ニョ", kunReading: "おんな", englishGloss: "female" },
+      { character: "友", onReading: "ユウ", kunReading: "とも", englishGloss: "friend" },
     ],
     grammar: [
       { pattern: "これ・それ・あれ・どれ", englishGloss: "this/that/that over there/which one" },
@@ -264,6 +278,18 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "今", onReading: "コン、キン", kunReading: "いま", englishGloss: "now" },
       { character: "月", onReading: "ゲツ、ガツ", kunReading: "つき", englishGloss: "month, moon" },
       { character: "年", onReading: "ネン", kunReading: "とし", englishGloss: "year" },
+      { character: "週", onReading: "シュウ", kunReading: "—", englishGloss: "week" },
+      { character: "時", onReading: "ジ", kunReading: "とき", englishGloss: "time, hour" },
+      { character: "間", onReading: "カン、ケン", kunReading: "あいだ", englishGloss: "between, interval" },
+      { character: "先", onReading: "セン", kunReading: "さき", englishGloss: "previous, ahead" },
+      { character: "来", onReading: "ライ", kunReading: "く.る、きた.る", englishGloss: "come" },
+      { character: "半", onReading: "ハン", kunReading: "なか.ば", englishGloss: "half" },
+      { character: "何", onReading: "カ", kunReading: "なに、なん", englishGloss: "what" },
+      { character: "火", onReading: "カ", kunReading: "ひ", englishGloss: "fire" },
+      { character: "水", onReading: "スイ", kunReading: "みず", englishGloss: "water" },
+      { character: "木", onReading: "ボク、モク", kunReading: "き", englishGloss: "tree, wood" },
+      { character: "金", onReading: "キン、コン", kunReading: "かね", englishGloss: "money, gold, Friday" },
+      { character: "土", onReading: "ド、ト", kunReading: "つち", englishGloss: "soil, earth" },
     ],
     grammar: [
       { pattern: "ここ・そこ・あそこ・どこ", englishGloss: "here/there/over there/where" },
@@ -310,6 +336,7 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "食", onReading: "ショク", kunReading: "た.べる", englishGloss: "eat, food" },
       { character: "飲", onReading: "イン", kunReading: "の.む", englishGloss: "drink" },
       { character: "見", onReading: "ケン", kunReading: "み.る", englishGloss: "see, look" },
+      { character: "聞", onReading: "ブン、モン", kunReading: "き.く", englishGloss: "hear, ask" },
     ],
     grammar: [
       { pattern: "〜があります", englishGloss: "there is/are (inanimate)" },
@@ -356,6 +383,8 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "校", onReading: "コウ", kunReading: "—", englishGloss: "school" },
       { character: "右", onReading: "ウ、ユウ", kunReading: "みぎ", englishGloss: "right" },
       { character: "左", onReading: "サ", kunReading: "ひだり", englishGloss: "left" },
+      { character: "駅", onReading: "エキ", kunReading: "—", englishGloss: "station" },
+      { character: "中", onReading: "チュウ", kunReading: "なか", englishGloss: "middle, inside" },
     ],
     grammar: [
       { pattern: "数字＋つ／人／個（助数詞）", englishGloss: "counters" },
@@ -401,6 +430,8 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "大", onReading: "ダイ、タイ", kunReading: "おお.きい", englishGloss: "big" },
       { character: "小", onReading: "ショウ", kunReading: "ちい.さい", englishGloss: "small" },
       { character: "新", onReading: "シン", kunReading: "あたら.しい", englishGloss: "new" },
+      { character: "古", onReading: "コ", kunReading: "ふる.い", englishGloss: "old" },
+      { character: "高", onReading: "コウ", kunReading: "たか.い", englishGloss: "expensive, tall" },
     ],
     grammar: [
       { pattern: "動詞のます形（肯定・現在）", englishGloss: "polite present affirmative verbs" },
@@ -444,9 +475,8 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "まずい", reading: "まずい", englishGloss: "bad-tasting" },
     ],
     kanji: [
-      { character: "肉", onReading: "ニク", kunReading: "—", englishGloss: "meat" },
       { character: "魚", onReading: "ギョ", kunReading: "さかな", englishGloss: "fish" },
-      { character: "茶", onReading: "チャ、サ", kunReading: "—", englishGloss: "tea" },
+      { character: "空", onReading: "クウ", kunReading: "そら、あ.く", englishGloss: "sky, empty" },
     ],
     grammar: [
       { pattern: "動詞のました形（肯定・過去）", englishGloss: "polite past affirmative verbs" },
@@ -493,7 +523,7 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
     kanji: [
       { character: "買", onReading: "バイ", kunReading: "か.う", englishGloss: "buy" },
       { character: "店", onReading: "テン", kunReading: "みせ", englishGloss: "shop" },
-      { character: "円", onReading: "エン", kunReading: "—", englishGloss: "yen, circle" },
+      { character: "安", onReading: "アン", kunReading: "やす.い", englishGloss: "cheap, safe" },
     ],
     grammar: [
       { pattern: "〜を＋他動詞", englishGloss: "transitive verb + object marker を" },
@@ -537,9 +567,11 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "注射", reading: "ちゅうしゃ", englishGloss: "injection" },
     ],
     kanji: [
-      { character: "体", onReading: "タイ", kunReading: "からだ", englishGloss: "body" },
-      { character: "病", onReading: "ビョウ", kunReading: "やまい", englishGloss: "illness" },
-      { character: "院", onReading: "イン", kunReading: "—", englishGloss: "institution" },
+      { character: "耳", onReading: "ジ", kunReading: "みみ", englishGloss: "ear" },
+      { character: "手", onReading: "シュ", kunReading: "て", englishGloss: "hand" },
+      { character: "足", onReading: "ソク", kunReading: "あし、た.りる", englishGloss: "leg, foot, sufficient" },
+      { character: "目", onReading: "モク", kunReading: "め", englishGloss: "eye" },
+      { character: "口", onReading: "コウ", kunReading: "くち", englishGloss: "mouth" },
     ],
     grammar: [
       { pattern: "〜で（場所＋動作）", englishGloss: "location of an action, particle で" },
@@ -629,7 +661,6 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "集める", reading: "あつめる", englishGloss: "to collect" },
     ],
     kanji: [
-      { character: "音", onReading: "オン、イン", kunReading: "おと", englishGloss: "sound" },
       { character: "楽", onReading: "ガク、ラク", kunReading: "たの.しい", englishGloss: "music, fun" },
       { character: "歌", onReading: "カ", kunReading: "うた", englishGloss: "song" },
     ],
@@ -678,7 +709,7 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
     kanji: [
       { character: "会", onReading: "カイ", kunReading: "あ.う", englishGloss: "meet, meeting" },
       { character: "社", onReading: "シャ", kunReading: "やしろ", englishGloss: "company, shrine" },
-      { character: "員", onReading: "イン", kunReading: "—", englishGloss: "member, staff" },
+      { character: "入", onReading: "ニュウ", kunReading: "はい.る、い.れる", englishGloss: "enter" },
     ],
     grammar: [
       { pattern: "形容詞＋名詞", englishGloss: "adjective modifying a noun" },
@@ -861,9 +892,12 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "そろそろ", reading: "そろそろ", englishGloss: "soon, about time to" },
     ],
     kanji: [
-      { character: "週", onReading: "シュウ", kunReading: "—", englishGloss: "week" },
       { character: "朝", onReading: "チョウ", kunReading: "あさ", englishGloss: "morning" },
       { character: "夜", onReading: "ヤ", kunReading: "よる", englishGloss: "night" },
+      { character: "午", onReading: "ゴ", kunReading: "—", englishGloss: "noon" },
+      { character: "後", onReading: "ゴ、コウ", kunReading: "あと、うし.ろ", englishGloss: "after, behind" },
+      { character: "分", onReading: "ブン、フン、ブ", kunReading: "わ.ける", englishGloss: "minute, part, divide" },
+      { character: "毎", onReading: "マイ", kunReading: "—", englishGloss: "every" },
     ],
     grammar: [
       { pattern: "〜ましょうか", englishGloss: "shall I/we...?" },
@@ -1050,9 +1084,11 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "旅館", reading: "りょかん", englishGloss: "traditional inn" },
     ],
     kanji: [
-      { character: "旅", onReading: "リョ", kunReading: "たび", englishGloss: "travel, trip" },
       { character: "行", onReading: "コウ、ギョウ", kunReading: "い.く", englishGloss: "go" },
       { character: "外", onReading: "ガイ", kunReading: "そと", englishGloss: "outside" },
+      { character: "国", onReading: "コク", kunReading: "くに", englishGloss: "country" },
+      { character: "言", onReading: "ゲン、ゴン", kunReading: "い.う、こと", englishGloss: "say, word" },
+      { character: "語", onReading: "ゴ", kunReading: "かた.る", englishGloss: "language, word" },
     ],
     grammar: [
       { pattern: "〜前に", englishGloss: "before doing" },
@@ -1100,6 +1136,7 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "服", onReading: "フク", kunReading: "—", englishGloss: "clothes" },
       { character: "着", onReading: "チャク", kunReading: "き.る", englishGloss: "wear, arrive" },
       { character: "色", onReading: "ショク、シキ", kunReading: "いろ", englishGloss: "color" },
+      { character: "白", onReading: "ハク、ビャク", kunReading: "しろ、しろ.い", englishGloss: "white" },
     ],
     grammar: [
       { pattern: "〜たり〜たりします", englishGloss: "doing things such as..." },
@@ -1147,6 +1184,8 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "仕", onReading: "シ", kunReading: "—", englishGloss: "serve, work" },
       { character: "事", onReading: "ジ", kunReading: "こと", englishGloss: "matter, affair" },
       { character: "働", onReading: "ドウ", kunReading: "はたら.く", englishGloss: "work" },
+      { character: "出", onReading: "シュツ", kunReading: "で.る、だ.す", englishGloss: "exit, leave" },
+      { character: "休", onReading: "キュウ", kunReading: "やす.む", englishGloss: "rest" },
     ],
     grammar: [
       { pattern: "〜くれます", englishGloss: "someone gives (to me)" },
@@ -1239,9 +1278,11 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "目印", reading: "めじるし", englishGloss: "landmark" },
     ],
     kanji: [
-      { character: "近", onReading: "キン", kunReading: "ちか.い", englishGloss: "near" },
-      { character: "遠", onReading: "エン", kunReading: "とお.い", englishGloss: "far" },
       { character: "前", onReading: "ゼン", kunReading: "まえ", englishGloss: "front, before" },
+      { character: "北", onReading: "ホク", kunReading: "きた", englishGloss: "north" },
+      { character: "西", onReading: "セイ、サイ", kunReading: "にし", englishGloss: "west" },
+      { character: "東", onReading: "トウ", kunReading: "ひがし", englishGloss: "east" },
+      { character: "南", onReading: "ナン、ナ", kunReading: "みなみ", englishGloss: "south" },
     ],
     grammar: [
       { pattern: "動詞のない形", englishGloss: "nai-form of verbs" },
@@ -1287,7 +1328,6 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
     ],
     kanji: [
       { character: "上", onReading: "ジョウ", kunReading: "うえ、あ.げる", englishGloss: "up, above" },
-      { character: "手", onReading: "シュ", kunReading: "て", englishGloss: "hand" },
       { character: "下", onReading: "カ、ゲ", kunReading: "した、さ.げる", englishGloss: "down, below" },
     ],
     grammar: [
@@ -1336,6 +1376,8 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "長", onReading: "チョウ", kunReading: "なが.い", englishGloss: "long" },
       { character: "短", onReading: "タン", kunReading: "みじか.い", englishGloss: "short" },
       { character: "強", onReading: "キョウ", kunReading: "つよ.い", englishGloss: "strong" },
+      { character: "少", onReading: "ショウ", kunReading: "すく.ない、すこ.し", englishGloss: "few, little" },
+      { character: "多", onReading: "タ", kunReading: "おお.い", englishGloss: "many" },
     ],
     grammar: [
       { pattern: "〜という〜", englishGloss: "called, named..." },
@@ -1383,6 +1425,7 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { character: "使", onReading: "シ", kunReading: "つか.う", englishGloss: "use" },
       { character: "守", onReading: "シュ", kunReading: "まも.る", englishGloss: "protect, keep" },
       { character: "自", onReading: "ジ、シ", kunReading: "みずか.ら", englishGloss: "self" },
+      { character: "立", onReading: "リツ", kunReading: "た.つ", englishGloss: "stand" },
     ],
     grammar: [
       { pattern: "〜てしまいます", englishGloss: "completion, unfortunate result" },
@@ -1522,9 +1565,8 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "遅れる", reading: "おくれる", englishGloss: "to be late, delayed" },
     ],
     kanji: [
-      { character: "局", onReading: "キョク", kunReading: "—", englishGloss: "office, bureau" },
       { character: "証", onReading: "ショウ", kunReading: "—", englishGloss: "proof, certificate" },
-      { character: "費", onReading: "ヒ", kunReading: "—", englishGloss: "expense, cost" },
+      { character: "名", onReading: "メイ、ミョウ", kunReading: "な", englishGloss: "name" },
     ],
     grammar: [
       { pattern: "〜なら、〜", englishGloss: "if it's the case that..." },
@@ -1569,8 +1611,6 @@ export const N5_SYLLABUS: N5LessonSpec[] = [
       { japanese: "どうぞよろしく", reading: "どうぞよろしく", englishGloss: "nice to meet you (response)" },
     ],
     kanji: [
-      { character: "失", onReading: "シツ", kunReading: "うしな.う", englishGloss: "lose, fail" },
-      { character: "礼", onReading: "レイ", kunReading: "—", englishGloss: "courtesy, thanks" },
       { character: "元", onReading: "ゲン、ガン", kunReading: "もと", englishGloss: "origin, base" },
     ],
     grammar: [
