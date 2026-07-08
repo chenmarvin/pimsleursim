@@ -149,11 +149,12 @@ export async function extractVocabulary(opts: {
     model: config.claudeModel,
     // Each Japanese item now carries kanaReading/alternateReadings/furigana/
     // exampleFurigana plus englishTranslation/exampleSentence/exampleTranslation/
-    // commonMistake/memoryTip/chineseDifference — up to maxItems=60 of those no
-    // longer fits in 4096 output tokens. A truncated response breaks structured-
-    // output JSON parsing entirely (mid-string cutoff), so this needs real
-    // headroom rather than a tight cap.
-    max_tokens: 16000,
+    // commonMistake/memoryTip/chineseDifference — a fixed cap kept getting
+    // outgrown as maxItems (up to 60) and per-item verbosity (heavy-kanji
+    // content tokenizes worse) varied, and a truncated response breaks
+    // structured-output JSON parsing entirely (mid-string cutoff). Scale the
+    // budget with maxItems instead of guessing another fixed constant.
+    max_tokens: Math.min(32000, 2000 + opts.maxItems * 700),
     output_config: { format: zodOutputFormat(extractionSchema) },
     messages: [
       {
