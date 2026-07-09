@@ -36,7 +36,7 @@ Content architecture note: N5 lesson **content** is authored once, upfront, as s
 | PDF upload (native-text only) | Shipped |
 | On-demand conversation generation from the learner's vocab catalog | Shipped |
 | Japanese/JLPT add-on mode: daily dashboard, grammar drills, kana/kanji drills, furigana toggle | Shipped |
-| N5 fixed 40-lesson syllabus content | 39/40 lessons authored — **lesson-25.md is missing**, unconfirmed whether intentional |
+| N5 fixed 40-lesson syllabus content | 40/40 lessons authored (`lesson-25.md` gap filled 2026-07-09) |
 | N4–N1 fixed-syllabus content | Not started |
 | Cross-session learner progress persistence (session count, N5 lesson position, kana/kanji/grammar coverage, vocab mastery) | Verified working via `localStorage` stores — audited 2026-07-09, no gaps found |
 | OCR / scanned-PDF support | Not started (explicitly out of scope unless requirements change) |
@@ -44,7 +44,6 @@ Content architecture note: N5 lesson **content** is authored once, upfront, as s
 
 ## 4. Known issues / open items
 
-- `content/n5/lesson-25.md` is missing from the syllabus (files exist for 01–24 and 26–40). Needs confirmation from the user whether this is an accidental gap or intentional.
 - `UploadConfigScreen`: an already-displayed error message won't retranslate if the UI language is switched while it's showing (stored as a resolved string, not an i18n key). Low priority, not fixed.
 - Termux/Android on-device run path (build client on PC, transfer `packages/server` + `packages/shared` + `packages/client/dist` + `.env`, `npm run start` on-device) is our best-designed recommendation but has not been verified on a real device yet.
 - Upload-material source recommendations (NHK Easy News for N5, manga transcripts for N4, NHK News/novels for N3+, eventually the user's medical-device regulatory docs for N2+) were given conversationally but never built into the app as a curated source list.
@@ -55,7 +54,7 @@ Content architecture note: N5 lesson **content** is authored once, upfront, as s
 - **2026-07-03** — Added browser TTS fallback (`speechSynthesis`) and bilingual EN/繁體中文 UI. Fixed `.env` resolution bug (was cwd-relative, silently failing under `npm run start --workspace=...`). Converted from manual rsync to a real git repo tracking `chenmarvin/pimsleursim` on GitHub; reconciled with 3 commits already on GitHub (multi-script Japanese answer support, `kanaReading` field, adjustable font-size control).
 - **2026-07-07** — Japanese/JLPT study mode added as a scoped add-on (confirmed via clarifying question): daily-schedule dashboard, grammar drills, PDF vocab upload, on-demand conversation generation, furigana (`<ruby>/<rt>`) rendering shipped across vocab/dialogue/grammar. Paused mid-discussion on upload-material sourcing.
 - **2026-07-08** — Decided N5 (and by extension N4–N1) content should be a fixed, pre-authored syllabus rather than generated on-demand at runtime. Authored all 40 N5 lesson content files to `content/n5/` per `docs/jlpt-course-requirements.md` (REQ-1 through REQ-24). Fixed the N5 kanji list to match real JLPT N5 references.
-- **2026-07-09** — Audited and confirmed cross-session learner progress persistence already works correctly end-to-end via `localStorage` stores (no code changes needed). Noted `lesson-25.md` gap. Created this progress log.
+- **2026-07-09** — Audited and confirmed cross-session learner progress persistence already works correctly end-to-end via `localStorage` stores (no code changes needed). Created this progress log, which noted a `lesson-25.md` gap in the N5 syllabus. Authored `content/n5/lesson-25.md` (review lesson covering Lessons 21–24: daily schedule, lending/borrowing, feelings/opinions, nature/animals) to close the gap — all 40 N5 lessons are now present.
 
 ## 6. Operational notes
 
