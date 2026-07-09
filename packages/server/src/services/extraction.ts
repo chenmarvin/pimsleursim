@@ -157,8 +157,10 @@ export async function extractVocabulary(opts: {
     // outgrown as maxItems (up to 60) and per-item verbosity (heavy-kanji
     // content tokenizes worse) varied, and a truncated response breaks
     // structured-output JSON parsing entirely (mid-string cutoff). Scale the
-    // budget with maxItems instead of guessing another fixed constant.
-    max_tokens: Math.min(32000, 2000 + opts.maxItems * 700),
+    // budget with maxItems instead of guessing another fixed constant. Cap at
+    // 128000 (claude-opus-4-8's max output when streaming), not the older
+    // 32000 ceiling that was truncating maxItems=60 Japanese requests.
+    max_tokens: Math.min(128000, 2000 + opts.maxItems * 700),
     output_config: { format: zodOutputFormat(extractionSchema) },
     messages: [
       {
