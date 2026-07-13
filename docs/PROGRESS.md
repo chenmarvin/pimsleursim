@@ -44,9 +44,9 @@ Content architecture note: N5 lesson **content** is authored once, upfront, as s
 
 ## 4. Known issues / open items
 
-- `UploadConfigScreen`: an already-displayed error message won't retranslate if the UI language is switched while it's showing (stored as a resolved string, not an i18n key). Low priority, not fixed.
 - Termux/Android on-device run path (build client on PC, transfer `packages/server` + `packages/shared` + `packages/client/dist` + `.env`, `npm run start` on-device) is our best-designed recommendation but has not been verified on a real device yet.
 - Upload-material source recommendations (NHK Easy News for N5, manga transcripts for N4, NHK News/novels for N3+, eventually the user's medical-device regulatory docs for N2+) were given conversationally but never built into the app as a curated source list.
+- The same stale-language error pattern just fixed in `UploadConfigScreen` (see 2026-07-13 log entry) also exists in `DashboardScreen.tsx`, `N5LessonScreen.tsx`, `ConversationView.tsx`, and `DailySessionScreen.tsx` — each stores `err.message` or a `t()`-resolved string in state instead of an i18n key, so a displayed error won't retranslate on a language switch. Not fixed yet; noted but out of scope for the session that fixed `UploadConfigScreen`.
 
 ## 5. Session log
 
@@ -55,8 +55,10 @@ Content architecture note: N5 lesson **content** is authored once, upfront, as s
 - **2026-07-07** — Japanese/JLPT study mode added as a scoped add-on (confirmed via clarifying question): daily-schedule dashboard, grammar drills, PDF vocab upload, on-demand conversation generation, furigana (`<ruby>/<rt>`) rendering shipped across vocab/dialogue/grammar. Paused mid-discussion on upload-material sourcing.
 - **2026-07-08** — Decided N5 (and by extension N4–N1) content should be a fixed, pre-authored syllabus rather than generated on-demand at runtime. Authored all 40 N5 lesson content files to `content/n5/` per `docs/jlpt-course-requirements.md` (REQ-1 through REQ-24). Fixed the N5 kanji list to match real JLPT N5 references.
 - **2026-07-09** — Audited and confirmed cross-session learner progress persistence already works correctly end-to-end via `localStorage` stores (no code changes needed). Created this progress log, which noted a `lesson-25.md` gap in the N5 syllabus. Authored `content/n5/lesson-25.md` (review lesson covering Lessons 21–24: daily schedule, lending/borrowing, feelings/opinions, nature/animals) to close the gap — all 40 N5 lessons are now present.
+- **2026-07-13** — Installed and authenticated the GitHub CLI (`gh`) for this environment (see §6) and switched to a feature-branch + PR workflow for new changes. Fixed the `UploadConfigScreen` stale-language error bug listed in §4: errors were stored as already-resolved translated strings, so a displayed error didn't retranslate on a UI language switch; now stored as an i18n key (+ params) and resolved via `t()` at render time. Verified live by driving the app with a headless-Chromium (Playwright) script against the Vite dev server: triggered the English error, switched to 繁體中文 mid-display, confirmed the DOM text updated to the Chinese string with no stale English left and no console errors. Shipped via PR #5 (`claude/fix-error-retranslation`), squash-merged to `master`. While fixing this, found the same pattern (resolved string instead of i18n key) recurs in four other screens/components — logged as a new §4 open item rather than fixed in this pass.
 
 ## 6. Operational notes
 
 - The user has two GitHub accounts; a `GH_TOKEN` env var shadows the personal account (`chenmarvin`, this repo's owner) with the work account (`GSHMarvin`). `unset GH_TOKEN` before any `git pull`/`push` against this repo.
+- `gh` (GitHub CLI) is installed and authenticated as `chenmarvin` over HTTPS, with git's credential helper wired to it (`gh auth setup-git`). New changes should go through a feature branch + `gh pr create` rather than committing straight to `master` (see 2026-07-13 log entry — the earlier extraction max_tokens commit went straight to `master` with no PR, which this workflow now avoids).
 - Real sample practice material (`pim01_time.txt`, `pim02_personlife.txt`, `pim03_basicverbs.txt`) lives at the repo root as genuine test input for the extraction step — intentionally messy/inconsistent formatting. Do not overwrite.
