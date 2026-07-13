@@ -4,7 +4,12 @@ import { DEFAULT_SCHEDULER_CONFIG } from "@pimsleursim/shared";
 import { extractVocabulary, fetchNextLesson } from "../api/client.js";
 import { extractTextFromPdf } from "../files/pdfText.js";
 import { useUiLanguage } from "../i18n/useUiLanguage.js";
+import type { StringKey } from "../i18n/strings.js";
 import { loadDeck, mergeCatalog } from "../storage/masteryStore.js";
+
+// A key (+ params) re-translates on language switch; `raw` is verbatim
+// server/error text with no i18n key to re-resolve.
+type ErrorState = { key: StringKey; params?: Record<string, string | number> } | { raw: string };
 
 export interface LessonReadyPayload {
   steps: LessonStep[];
@@ -23,7 +28,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
   const [sourceLanguage, setSourceLanguage] = useState("en");
   const [targetLanguage, setTargetLanguage] = useState("ja");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState | null>(null);
   const [loadedFileName, setLoadedFileName] = useState<string | null>(null);
   const [truncationNotice, setTruncationNotice] = useState<{ processed: number; total: number } | null>(null);
   const [scannedPageNumbers, setScannedPageNumbers] = useState<number[] | null>(null);
@@ -47,13 +52,13 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
       setLoadedFileName(file.name);
       setError(null);
     } catch {
-      setError(t("errorFileRead", { fileName: file.name }));
+      setError({ key: "errorFileRead", params: { fileName: file.name } });
     }
   }
 
   async function handleStart() {
     if (!rawText.trim()) {
-      setError(t("errorPasteFirst"));
+      setError({ key: "errorPasteFirst" });
       return;
     }
     setLoading(true);
@@ -126,7 +131,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
         onLessonReady(payload);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : t("errorGeneric"));
+      setError(err instanceof Error ? { raw: err.message } : { key: "errorGeneric" });
     } finally {
       setLoading(false);
     }
@@ -175,7 +180,7 @@ export function UploadConfigScreen({ onLessonReady }: Props) {
           {loading ? t("preparingLesson") : t("startLesson")}
         </button>
       </div>
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p style={{ color: "red" }}>{"key" in error ? t(error.key, error.params) : error.raw}</p>}
       {scannedPageNumbers && (
         <p style={{ color: "darkorange" }}>{t("warningScannedPages", { pages: scannedPageNumbers.join(", ") })}</p>
       )}
