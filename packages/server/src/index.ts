@@ -14,6 +14,7 @@ import { listeningRouter } from "./routes/listening.js";
 import { n5VocabRouter } from "./routes/n5Vocab.js";
 import { quizRouter } from "./routes/quiz.js";
 import { readingRouter } from "./routes/reading.js";
+import { scenarioRouter } from "./routes/scenario.js";
 import { shadowingRouter } from "./routes/shadowing.js";
 import { ttsRouter } from "./routes/tts.js";
 import { writingRouter } from "./routes/writing.js";
@@ -33,6 +34,7 @@ app.use("/api/listening", listeningRouter);
 app.use("/api/n5-vocab", n5VocabRouter);
 app.use("/api/reading", readingRouter);
 app.use("/api/quiz", quizRouter);
+app.use("/api/scenario", scenarioRouter);
 app.use("/api/shadowing", shadowingRouter);
 app.use("/api/writing", writingRouter);
 

@@ -5,12 +5,14 @@ import { useUiLanguage, UiLanguageProvider } from "./i18n/useUiLanguage.js";
 import { DailySessionScreen } from "./screens/DailySessionScreen.js";
 import { DashboardScreen } from "./screens/DashboardScreen.js";
 import { GrammarDrillScreen, type GrammarDrillPayload } from "./screens/GrammarDrillScreen.js";
+import { HelpScreen } from "./screens/HelpScreen.js";
 import { KanaScreen } from "./screens/KanaScreen.js";
 import { KanjiDrillScreen, type KanjiDrillPayload } from "./screens/KanjiDrillScreen.js";
 import { LessonPlayerScreen } from "./screens/LessonPlayerScreen.js";
 import { ListeningScreen, type ListeningDrillPayload } from "./screens/ListeningScreen.js";
 import { N5LessonScreen } from "./screens/N5LessonScreen.js";
 import { ReadingScreen, type ReadingDrillPayload } from "./screens/ReadingScreen.js";
+import { ScenarioScreen, type ScenarioDrillPayload, type ScenarioMode } from "./screens/ScenarioScreen.js";
 import { UploadConfigScreen, type LessonReadyPayload } from "./screens/UploadConfigScreen.js";
 import { loadJapaneseMode, saveJapaneseMode } from "./storage/japaneseModeStore.js";
 
@@ -22,9 +24,11 @@ type Screen =
   | { name: "kanjiDrill"; payload: KanjiDrillPayload }
   | { name: "listeningDrill"; payload: ListeningDrillPayload }
   | { name: "readingDrill"; payload: ReadingDrillPayload }
+  | { name: "scenarioDrill"; payload: ScenarioDrillPayload; mode: ScenarioMode }
   | { name: "session" }
   | { name: "n5Lesson" }
-  | { name: "kana" };
+  | { name: "kana" }
+  | { name: "help" };
 
 const MIN_FONT_SIZE = 12;
 const MAX_FONT_SIZE = 28;
@@ -59,6 +63,7 @@ function AppShell() {
         <button onClick={increaseFont} disabled={fontSize >= MAX_FONT_SIZE} aria-label="Increase font size">A+</button>
         <button onClick={toggleJapaneseMode}>{t(japaneseModeEnabled ? "jlptModeOn" : "jlptModeOff")}</button>
         <button onClick={toggleFuriganaVisible}>{t(furiganaVisible ? "furiganaOn" : "furiganaOff")}</button>
+        <button onClick={() => setScreen({ name: "help" })}>{t("helpMenuButton")}</button>
         <div style={{ flex: 1 }} />
         <LanguageSwitcher />
       </div>
@@ -99,12 +104,22 @@ function AppShell() {
           targetLanguage={screen.payload.targetLanguage}
           onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })}
         />
+      ) : screen.name === "scenarioDrill" ? (
+        <ScenarioScreen
+          set={screen.payload.set}
+          mode={screen.mode}
+          sourceLanguage={screen.payload.sourceLanguage}
+          targetLanguage={screen.payload.targetLanguage}
+          onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })}
+        />
       ) : screen.name === "session" ? (
         <DailySessionScreen onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })} />
       ) : screen.name === "n5Lesson" ? (
         <N5LessonScreen onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })} />
       ) : screen.name === "kana" ? (
         <KanaScreen onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })} />
+      ) : screen.name === "help" ? (
+        <HelpScreen onFinish={() => setScreen({ name: homeScreenFor(japaneseModeEnabled) })} />
       ) : screen.name === "dashboard" ? (
         <DashboardScreen
           onStartPractice={(payload) => setScreen({ name: "lesson", payload })}
@@ -113,6 +128,7 @@ function AppShell() {
           onStartKana={() => setScreen({ name: "kana" })}
           onStartListening={(payload) => setScreen({ name: "listeningDrill", payload })}
           onStartReading={(payload) => setScreen({ name: "readingDrill", payload })}
+          onStartScenario={(payload, mode) => setScreen({ name: "scenarioDrill", payload, mode })}
           onStartSession={() =>
             loadJapaneseMode().currentPhase === "N5" ? setScreen({ name: "n5Lesson" }) : setScreen({ name: "session" })
           }

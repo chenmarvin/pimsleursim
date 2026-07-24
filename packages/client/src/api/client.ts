@@ -21,6 +21,8 @@ import type {
   QuizDrillResponse,
   ReadingDrillRequest,
   ReadingDrillResponse,
+  ScenarioDrillRequest,
+  ScenarioDrillResponse,
   ShadowingDrillRequest,
   ShadowingDrillResponse,
   TTSRequest,
@@ -76,6 +78,10 @@ export function fetchReadingDrill(req: ReadingDrillRequest): Promise<ReadingDril
 
 export function fetchQuiz(req: QuizDrillRequest): Promise<QuizDrillResponse> {
   return postJson<QuizDrillResponse>("/api/quiz/next", req);
+}
+
+export function fetchScenario(req: ScenarioDrillRequest): Promise<ScenarioDrillResponse> {
+  return postJson<ScenarioDrillResponse>("/api/scenario/next", req);
 }
 
 export function fetchShadowingSet(req: ShadowingDrillRequest): Promise<ShadowingDrillResponse> {

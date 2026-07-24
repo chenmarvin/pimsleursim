@@ -7,6 +7,7 @@ import {
   fetchNextLesson,
   fetchQuiz,
   fetchReadingDrill,
+  fetchScenario,
   fetchShadowingSet,
   fetchWritingSentences,
 } from "../api/client.js";
@@ -25,13 +26,23 @@ import { LessonPlayerScreen } from "./LessonPlayerScreen.js";
 import { ListeningScreen, type ListeningDrillPayload } from "./ListeningScreen.js";
 import { QuizScreen, type QuizDrillPayload } from "./QuizScreen.js";
 import { ReadingScreen, type ReadingDrillPayload } from "./ReadingScreen.js";
+import { ScenarioScreen, type ScenarioDrillPayload } from "./ScenarioScreen.js";
 import { ShadowingScreen, type ShadowingDrillPayload } from "./ShadowingScreen.js";
 import type { LessonReadyPayload } from "./UploadConfigScreen.js";
 import { WritingScreen, type WritingDrillPayload } from "./WritingScreen.js";
 
 const JAPANESE_TARGET_LANGUAGE = "ja";
 
-type ModuleKind = "vocab" | "kanji" | "grammar" | "reading" | "listening" | "speaking" | "writing" | "quiz";
+type ModuleKind =
+  | "vocab"
+  | "kanji"
+  | "grammar"
+  | "reading"
+  | "listening"
+  | "speaking"
+  | "scenario"
+  | "writing"
+  | "quiz";
 
 const OBJECTIVE_LABEL_KEYS: Record<ModuleKind, StringKey> = {
   vocab: "moduleVocab",
@@ -40,6 +51,7 @@ const OBJECTIVE_LABEL_KEYS: Record<ModuleKind, StringKey> = {
   reading: "moduleReading",
   listening: "moduleListening",
   speaking: "moduleSpeaking",
+  scenario: "moduleScenario",
   writing: "moduleWriting",
   quiz: "moduleQuiz",
 };
@@ -53,6 +65,7 @@ type StepState =
   | { name: "reading"; payload: ReadingDrillPayload }
   | { name: "listening"; payload: ListeningDrillPayload }
   | { name: "speaking"; payload: ShadowingDrillPayload }
+  | { name: "scenario"; payload: ScenarioDrillPayload }
   | { name: "writing"; payload: WritingDrillPayload }
   | { name: "quiz"; payload: QuizDrillPayload }
   | { name: "outcomes" }
@@ -77,7 +90,7 @@ export function DailySessionScreen({ onFinish }: Props) {
     const list: ModuleKind[] = ["vocab"];
     if (!isReview && kanaComplete) list.push("kanji");
     if (!isReview) list.push("grammar");
-    list.push("reading", "listening", "speaking", "writing", "quiz");
+    list.push("reading", "listening", "speaking", "scenario", "writing", "quiz");
     return list;
   }, [isReview, kanaComplete]);
 
@@ -147,6 +160,16 @@ export function DailySessionScreen({ onFinish }: Props) {
         case "speaking": {
           const { set } = await fetchShadowingSet({ sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE, difficultyHint });
           setStep({ name: "speaking", payload: { set, sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE } });
+          break;
+        }
+        case "scenario": {
+          const { set } = await fetchScenario({
+            sourceLanguage,
+            targetLanguage: JAPANESE_TARGET_LANGUAGE,
+            difficultyHint,
+            vocab: japaneseItems,
+          });
+          setStep({ name: "scenario", payload: { set, sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE } });
           break;
         }
         case "writing": {
@@ -279,6 +302,18 @@ export function DailySessionScreen({ onFinish }: Props) {
     return (
       <ShadowingScreen
         set={step.payload.set}
+        sourceLanguage={step.payload.sourceLanguage}
+        targetLanguage={step.payload.targetLanguage}
+        onFinish={handleStepFinish}
+        finishLabel={finishLabel}
+      />
+    );
+  }
+  if (step.name === "scenario") {
+    return (
+      <ScenarioScreen
+        set={step.payload.set}
+        mode="writing"
         sourceLanguage={step.payload.sourceLanguage}
         targetLanguage={step.payload.targetLanguage}
         onFinish={handleStepFinish}

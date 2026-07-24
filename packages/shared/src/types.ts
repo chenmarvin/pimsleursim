@@ -304,6 +304,36 @@ export interface ShadowingDrillResponse {
   set: ShadowingSet;
 }
 
+// One line of dialogue in a scenario turn — either the NPC's line or one of
+// the learner's acceptable responses.
+export interface ScenarioLine {
+  targetText: string;
+  sourceText: string;
+  furigana?: FuriganaSegment[];
+}
+
+export interface ScenarioTurn {
+  situationText: string; // framing shown once per turn, in the learner's native language
+  npcLine: ScenarioLine;
+  expectedResponses: ScenarioLine[]; // 1-2 acceptable answers for this turn
+}
+
+export interface ScenarioSet {
+  scenarioTitle: string;
+  turns: ScenarioTurn[];
+}
+
+export interface ScenarioDrillRequest {
+  sourceLanguage: string;
+  targetLanguage: string;
+  difficultyHint?: string;
+  vocab?: VocabItem[];
+}
+
+export interface ScenarioDrillResponse {
+  set: ScenarioSet;
+}
+
 export interface WritingSentence {
   sourceText: string; // translation prompt, in the learner's native language
   targetText: string; // expected answer, in the target language

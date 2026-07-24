@@ -4,8 +4,16 @@ import type { GrammarDrillPayload } from "./GrammarDrillScreen.js";
 import type { KanjiDrillPayload } from "./KanjiDrillScreen.js";
 import type { ListeningDrillPayload } from "./ListeningScreen.js";
 import type { ReadingDrillPayload } from "./ReadingScreen.js";
+import type { ScenarioDrillPayload, ScenarioMode } from "./ScenarioScreen.js";
 import { DEFAULT_SCHEDULER_CONFIG, N5_LESSON_COUNT, selectDueReviewItems } from "@pimsleursim/shared";
-import { fetchGrammarDrill, fetchKanjiDrill, fetchListeningDrill, fetchNextLesson, fetchReadingDrill } from "../api/client.js";
+import {
+  fetchGrammarDrill,
+  fetchKanjiDrill,
+  fetchListeningDrill,
+  fetchNextLesson,
+  fetchReadingDrill,
+  fetchScenario,
+} from "../api/client.js";
 import {
   BUILT_MODULES,
   DAILY_SCHEDULE_TEMPLATES,
@@ -88,6 +96,7 @@ interface Props {
   onStartKana: () => void;
   onStartListening: (payload: ListeningDrillPayload) => void;
   onStartReading: (payload: ReadingDrillPayload) => void;
+  onStartScenario: (payload: ScenarioDrillPayload, mode: ScenarioMode) => void;
   onStartSession: () => void;
   onGoToUpload: () => void;
 }
@@ -99,6 +108,7 @@ export function DashboardScreen({
   onStartKana,
   onStartListening,
   onStartReading,
+  onStartScenario,
   onStartSession,
   onGoToUpload,
 }: Props) {
@@ -110,6 +120,7 @@ export function DashboardScreen({
   const [kanjiLoading, setKanjiLoading] = useState(false);
   const [listeningLoading, setListeningLoading] = useState(false);
   const [readingLoading, setReadingLoading] = useState(false);
+  const [scenarioLoading, setScenarioLoading] = useState<ScenarioMode | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const deck = useMemo(() => loadDeck(), []);
@@ -244,6 +255,25 @@ export function DashboardScreen({
     }
   }
 
+  async function handleStartScenario(mode: ScenarioMode) {
+    setScenarioLoading(mode);
+    setError(null);
+    try {
+      const sourceLanguage = mostCommonSourceLanguage(japaneseItems);
+      const { set } = await fetchScenario({
+        sourceLanguage,
+        targetLanguage: JAPANESE_TARGET_LANGUAGE,
+        difficultyHint: `JLPT ${japaneseMode.currentPhase}`,
+        vocab: japaneseItems,
+      });
+      onStartScenario({ set, sourceLanguage, targetLanguage: JAPANESE_TARGET_LANGUAGE }, mode);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("errorGeneric"));
+    } finally {
+      setScenarioLoading(null);
+    }
+  }
+
   return (
     <div>
       <h1>{t("dashboardTitle")}</h1>
@@ -359,6 +389,16 @@ export function DashboardScreen({
           </p>
         )}
         {error && <p style={{ color: "red" }}>{error}</p>}
+      </section>
+
+      <section>
+        <p>{t("moduleScenario")}</p>
+        <button onClick={() => handleStartScenario("listening")} disabled={scenarioLoading !== null}>
+          {scenarioLoading === "listening" ? t("scenarioLoading") : t("scenarioListeningLabel")}
+        </button>{" "}
+        <button onClick={() => handleStartScenario("writing")} disabled={scenarioLoading !== null}>
+          {scenarioLoading === "writing" ? t("scenarioLoading") : t("scenarioWritingLabel")}
+        </button>
       </section>
 
       <button onClick={onGoToUpload}>{t("goToUpload")}</button>
